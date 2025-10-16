@@ -5,8 +5,29 @@ add_library(ui STATIC
     LoginDialog.h
     DashboardWidget.cpp
     DashboardWidget.h
+<<<<<<< Updated upstream
     ClientDialog.cpp
     ClientDialog.h
+=======
+    VolunteerProfileWidget.cpp
+    VolunteerProfileWidget.h
+    ClientDialog.cpp
+    ClientDialog.h
+    WorkOrderDialog.cpp
+    WorkOrderDialog.h
+    InventoryDialog.cpp
+    InventoryDialog.h
+    EquipmentMaintenanceDialog.cpp
+    EquipmentMaintenanceDialog.h
+    UserManagementDialog.cpp
+    UserManagementDialog.h
+    MyProfileDialog.cpp
+    MyProfileDialog.h
+    EmployeeDirectoryDialog.cpp
+    EmployeeDirectoryDialog.h
+    ProfileChangeRequestDialog.cpp
+    ProfileChangeRequestDialog.h
+>>>>>>> Stashed changes
 )
 
 target_include_directories(ui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
