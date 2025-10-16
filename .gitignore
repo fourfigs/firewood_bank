@@ -1,25 +1,66 @@
-﻿# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Node
-node_modules/
-dist/
+﻿# Build directories
 build/
+cmake-build-*/
+out/
 
-# Python
-__pycache__/
-*.pyc
-.venv/
-venv/
+# IDE directories
+.vscode/
+.idea/
+*.user
+*.suo
+*.sln.docstates
 
-# OS
+# Qt generated files
+*_autogen/
+*.qrc.depends
+ui_*.h
+moc_*.cpp
+qrc_*.cpp
+
+# Compiled Object files
+*.o
+*.obj
+*.lo
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.a
+*.lib
+
+# Executables
+*.exe
+*.app
+*.out
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+install_manifest.txt
+CTestTestfile.cmake
+_deps/
+*.cmake
+
+# Database files
+*.sqlite
+*.db
+*.sqlite3
+
+# Logs
+*.log
+aqtinstall.log
+
+# OS-specific
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Env
-.env
-.env.*
+# Backup files
+*~
+*.swp
+*.swo
+*.bak
