@@ -1,112 +1,24 @@
 ﻿# Firewood Bank  TODO
 
-## High-level outline
-- Confirm stack and architecture (Qt 6 C++ + SQLite)
-- Initialize Qt project with CMake and repository structure
-- Implement database layer and migrations
-- Implement secure auth, roles, and audit logging
-- Build Clients module (CRUD, search, encrypted fields)
-- Build Volunteers and Hours module
-- Build Work-for-Wood credits module
-- Build Orders and Deliveries workflow
-- Build Inventory module
-- Build Assets and Maintenance module
-- Implement Reporting dashboards and exports
-- Implement Backup, Export, and Import
-- Scaffold Sync for future multi-device support
-- Testing and QA coverage
-- Packaging for Windows and macOS
-- Documentation for users and developers
-
-## Detailed tasks
-### Architecture
-- Choose Qt Widgets vs QML and finalize UI approach
-- Select crypto libraries (Argon2, libsodium) and key storage
-- Define repo structure, modules, and naming conventions
-- Define data retention, backups, and privacy policies
-
-### Project init
-- Create CMake project files and Qt app skeleton
-- Add folder structure: app, db, ui, core, tests
-- Implement main window, navigation, and theme
-- Configure logging, configuration, and environment handling
-
-### Database
-- Create SQLite schema versioning and migration runner
-- Design tables for clients, volunteers, orders, inventory
-- Design tables for assets, maintenance, reports, audit
-- Create indices, constraints, and foreign keys
-- Add seed data and fixtures for development
-
-### Auth
-- Implement password hashing with Argon2
-- Add role-based authorization and permissions checks
-- Encrypt sensitive fields at rest using libsodium
-- Implement audit log for key entity changes
-- Build login, logout, and session management
-
-### Clients
-- Implement Clients CRUD UI and forms validation
-- Add client search, filters, and pagination
-- Encrypt gate codes, notes, and sensitive directions
-- Add referral sources management and linking
-
-### Volunteers & Hours
-- Implement Volunteers CRUD and attributes
-- Implement hour logging and activities
-- Track licenses, trucks, equipment, trainings, waivers
-- Add emergency contact and compliance fields
-
-### Work-for-Wood
-- Define hourly rate policy and conversion to credits
-- Implement credit balance ledger and redemptions
-- Link credits to orders and inventory issuance
-
-### Orders & Deliveries
-- Implement Orders creation with requested cords and priority
-- Add scheduling, assignment, and delivery tracking
-- Capture delivered cords and proof of delivery
-
-### Inventory
-- Implement Inventory items, categories, and units
-- Implement inventory transactions and reasons
-- Track wood on hand split and not split
-- Implement min/target levels and alerts
-
-### Assets & Maintenance
-- Implement Assets for chainsaws, splitters, PPE
-- Implement maintenance schedules and reminders
-- Track maintenance logs and costs
-
-### Reports
-- Build reports: wood delivered by period
-- Build reports: households served and unique clients
-- Build reports: volunteer hours by period
-- Build reports: expenses and inventory spend
-- Add CSV export for reports
-
-### Backup/Import
-- Implement encrypted backups and scheduled backup tasks
-- Add CSV import templates for initial data entry
-- Add data validation and import preview
-
-### Sync
-- Design sync-friendly IDs and change tracking
-- Implement local changelog and conflict strategy
-- Abstract data access for future sync transport
-
-### Testing
-- Set up unit tests for core and db
-- Set up UI tests for key flows
-- Add test fixtures and factories
-
-### Packaging
-- Package Windows installer (MSIX or NSIS)
-- Package macOS app bundle and notarize
-- Automate packaging with scripts
-
-### Documentation
-- Write user guide and onboarding docs
-- Write developer setup and contribution guide
-- Document security model and backup procedures
-
+1. Confirm stack and architecture (Qt 6 Widgets, C++17, SQLite, CMake); define modules and naming conventions; choose crypto (Argon2, libsodium) and outline data retention/privacy policies.
+2. Initialize repository structure and CMake project; create folders `app`, `ui`, `core`, `db`, `tests` and a minimal runnable shell (main window, navigation, theme).
+3. Configure configuration management and logging (rotating logs, log levels, paths) and environment handling for dev/prod builds.
+4. Implement SQLite schema versioning and a migration runner executed at app startup.
+5. Design database schema: clients, volunteers, hours, work_for_wood (credits/ledger), inventory (batches, inspections, movements), orders (reservations, shipments), assets, maintenance, audit, reports; add indices, FKs, constraints.
+6. Seed development data and fixtures to support local testing and demos.
+7. Implement authentication: password hashing with Argon2, role-based authorization (admin, dispatcher, yard, driver, volunteer), session management.
+8. Implement encryption at rest for sensitive fields using libsodium; integrate secure key storage strategy and automated field-level encryption/decryption.
+9. Implement audit logging for key entity changes (who, when, what) and surface basic audit views.
+10. Build Clients module: CRUD UI, validation, search/filters/pagination; encrypt gate codes and sensitive notes; manage referral sources.
+11. Build Volunteers & Hours: volunteer CRUD, activity/hour logging, licenses/equipment/trainings/waivers, emergency contacts.
+12. Build Work-for-Wood credits: define hourly rate policy, implement credit ledger, redemptions, and linkage to orders/inventory issuance.
+13. Build Inventory: items/categories/units, batch tracking, inspections (moisture), movements (intake/adjust/reserve/pick/scrap), min/target levels and alerts.
+14. Build Orders & Deliveries: order creation (requested cords, priority), reservations against ready inventory, scheduling/assignment, delivery tracking, proof of delivery, partials.
+15. Build Assets & Maintenance: assets for chainsaws/splitters/PPE, maintenance schedules/reminders, maintenance logs and costs.
+16. Reporting & Exports: wood delivered by period, households served, volunteer hours, expenses/inventory spend; CSV export for reports.
+17. Backup and Import: encrypted backups (manual and scheduled), CSV import templates, validation and import preview flows.
+18. Sync scaffold: design sync-friendly IDs and change tracking, local changelog, conflict strategy, and an abstraction layer for future transport.
+19. Testing & QA: unit tests for core/db, UI tests for key flows, fixtures/factories; establish baseline coverage and CI jobs.
+20. Packaging: Windows installer (MSIX/NSIS) and macOS app bundle (notarized); automate packaging scripts.
+21. Documentation: user guide and onboarding, developer setup and contribution guide, security model and backup procedures.
+22. Final QA, performance tuning, and first stable release.
