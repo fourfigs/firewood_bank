@@ -7,15 +7,34 @@ Minimal skeleton for a Qt 6 + CMake desktop app with SQLite.
 - CMake 3.21+
 - A C++17 compiler (MSVC on Windows, Clang/GCC on macOS/Linux)
 
-## Build (Windows, PowerShell)
-```powershell
+## Build
+
+### All Platforms
+```bash
 mkdir build
 cd build
-cmake -G "Ninja" -DCMAKE_PREFIX_PATH="C:/Qt/6.6.0/msvc2019_64" ..
+cmake -DCMAKE_PREFIX_PATH=/path/to/Qt/6.x.x/<compiler> ..
 cmake --build . --config Release
 ```
 
-If not using Ninja, omit the generator flag. Set `CMAKE_PREFIX_PATH` to your Qt installation.
+### Platform-Specific Examples
+
+**Windows (PowerShell):**
+```powershell
+cmake -DCMAKE_PREFIX_PATH="C:/Qt/6.6.0/msvc2019_64" ..
+```
+
+**macOS:**
+```bash
+cmake -DCMAKE_PREFIX_PATH="$HOME/Qt/6.6.0/macos" ..
+```
+
+**Linux:**
+```bash
+cmake -DCMAKE_PREFIX_PATH="$HOME/Qt/6.6.0/gcc_64" ..
+```
+
+If Qt is installed system-wide or in PATH, you may omit `CMAKE_PREFIX_PATH`.
 
 ## Run
 ```
