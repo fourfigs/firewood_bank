@@ -44,6 +44,11 @@ public:
     static bool isAdmin(const QString &role);
     
     /**
+     * @brief Check if user is lead
+     */
+    static bool isLead(const QString &role);
+    
+    /**
      * @brief Check if user is employee
      */
     static bool isEmployee(const QString &role);

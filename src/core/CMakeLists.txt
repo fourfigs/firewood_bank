@@ -1,11 +1,8 @@
 add_library(core STATIC
     core.cpp
     core.h
-<<<<<<< Updated upstream
-=======
     Authorization.cpp
     Authorization.h
->>>>>>> Stashed changes
 )
 
 target_include_directories(core 
@@ -19,5 +16,4 @@ target_link_libraries(core
 )
 
 add_library(firewood::core ALIAS core)
-
 

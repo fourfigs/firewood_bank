@@ -11,16 +11,44 @@ bool Authorization::hasPermission(const QString &role, Permission permission)
         return true;
     }
     
+    // Lead permissions (between Admin and Employee)
+    // Leads can do everything except manage users and system settings
+    if (roleLower == "lead") {
+        switch (permission) {
+            case Permission::ManageUsers:
+            case Permission::ManageSystemSettings:
+                return false;  // Only admins can do these
+            case Permission::EditInventory:  // KEY: Leads CAN edit inventory
+            case Permission::ManageAllInventory:
+            case Permission::ViewClients:
+            case Permission::EditClients:
+            case Permission::ManageAllClients:
+            case Permission::AddOrders:
+            case Permission::EditOrders:
+            case Permission::ManageAllOrders:
+            case Permission::ViewInventory:
+            case Permission::ManageAgencies:
+            case Permission::ManageAllVolunteers:
+            case Permission::ViewAllReports:
+                return true;
+            default:
+                return false;
+        }
+    }
+    
     // Employee/User permissions
+    // NOTE: Employees can VIEW inventory but NOT EDIT
     if (roleLower == "employee" || roleLower == "user") {
         switch (permission) {
             case Permission::ViewClients:
             case Permission::EditClients:
             case Permission::AddOrders:
             case Permission::EditOrders:
-            case Permission::ViewInventory:
-            case Permission::EditInventory:
+            case Permission::ViewInventory:  // Can view
                 return true;
+            case Permission::EditInventory:   // CANNOT edit (only Leads and Admins)
+            case Permission::ManageAllInventory:
+                return false;
             default:
                 return false;
         }
@@ -43,6 +71,11 @@ bool Authorization::hasPermission(const QString &role, Permission permission)
 bool Authorization::isAdmin(const QString &role)
 {
     return role.toLower() == "admin";
+}
+
+bool Authorization::isLead(const QString &role)
+{
+    return role.toLower() == "lead";
 }
 
 bool Authorization::isEmployee(const QString &role)
