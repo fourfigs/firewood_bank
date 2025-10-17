@@ -576,115 +576,46 @@ void MainWindow::setupToolbar()
     // Apply beautiful forest gradient to toolbar
     tb->setStyleSheet(FirewoodStyles::TOOLBAR);
     
-    // Everyone can view their own profile
-    auto *myProfileAction = new QAction("👤 My Profile", this);
-    myProfileAction->setToolTip("View and edit my profile");
-    connect(myProfileAction, &QAction::triggered, this, &MainWindow::viewMyProfile);
-    tb->addAction(myProfileAction);
+    // Keep only the most essential, frequently-used actions in toolbar
+    // (All other actions available via menu bar with keyboard shortcuts)
     
-    // Leads and Admins can view complete employee directory
-    if (Authorization::isAdmin(m_role) || Authorization::isLead(m_role)) {
-        auto *employeeDirectoryAction = new QAction("👥 Employee List", this);
-        employeeDirectoryAction->setToolTip("View complete employee directory with all information");
-        connect(employeeDirectoryAction, &QAction::triggered, this, &MainWindow::viewEmployeeDirectory);
-        tb->addAction(employeeDirectoryAction);
+    // Most common actions: Add Client and New Order
+    if (Authorization::hasPermission(m_role, Authorization::Permission::EditClients)) {
+        auto *addClient = new QAction("➕ Client", this);
+        addClient->setToolTip("Add a new client/household (Ctrl+N)");
+        connect(addClient, &QAction::triggered, this, &MainWindow::addClient);
+        tb->addAction(addClient);
+    }
+    
+    if (Authorization::hasPermission(m_role, Authorization::Permission::AddOrders)) {
+        auto *addOrder = new QAction("📝 Order", this);
+        addOrder->setToolTip("Create a new work order (Ctrl+Shift+N)");
+        connect(addOrder, &QAction::triggered, this, &MainWindow::addWorkOrder);
+        tb->addAction(addOrder);
+    }
+    
+    // Inventory management (common for Leads/Admins)
+    if (Authorization::hasPermission(m_role, Authorization::Permission::EditInventory)) {
+        auto *addInventory = new QAction("📦 Inventory", this);
+        addInventory->setToolTip("Add or update inventory item (Ctrl+I)");
+        connect(addInventory, &QAction::triggered, this, &MainWindow::addInventoryItem);
+        tb->addAction(addInventory);
     }
     
     tb->addSeparator();
     
-    // Admin-only actions
-    if (Authorization::hasPermission(m_role, Authorization::Permission::ManageUsers)) {
-        auto *changeRequestsAction = new QAction("📝 Change Requests", this);
-        changeRequestsAction->setToolTip("Review profile change requests");
-        connect(changeRequestsAction, &QAction::triggered, this, &MainWindow::viewProfileChangeRequests);
-        tb->addAction(changeRequestsAction);
-        tb->addSeparator();
-        auto *manageUsersAction = new QAction("👥 Manage Users", this);
-        manageUsersAction->setToolTip("Manage system users");
-        connect(manageUsersAction, &QAction::triggered, this, &MainWindow::manageUsers);
-        tb->addAction(manageUsersAction);
-        
-        auto *manageAgenciesAction = new QAction("🏢 Manage Agencies", this);
-        manageAgenciesAction->setToolTip("Manage partner agencies");
-        connect(manageAgenciesAction, &QAction::triggered, this, &MainWindow::manageAgencies);
-        tb->addAction(manageAgenciesAction);
-        
-        tb->addSeparator();
-    }
-    
-    // Admin and Lead delete actions
+    // Delivery Log (essential for Leads/Admins)
     if (Authorization::isAdmin(m_role) || Authorization::isLead(m_role)) {
-        auto *deleteClientAction = new QAction("🗑️ Delete Client", this);
-        deleteClientAction->setToolTip("Delete selected client (Admin/Lead only)");
-        connect(deleteClientAction, &QAction::triggered, this, &MainWindow::deleteSelectedClient);
-        tb->addAction(deleteClientAction);
-        
-        auto *deleteOrderAction = new QAction("🗑️ Delete Order", this);
-        deleteOrderAction->setToolTip("Delete selected order (Admin/Lead only)");
-        connect(deleteOrderAction, &QAction::triggered, this, &MainWindow::deleteSelectedOrder);
-        tb->addAction(deleteOrderAction);
-        
-        auto *deleteInventoryAction = new QAction("🗑️ Delete Item", this);
-        deleteInventoryAction->setToolTip("Delete selected inventory item (Admin/Lead only)");
-        connect(deleteInventoryAction, &QAction::triggered, this, &MainWindow::deleteSelectedInventoryItem);
-        tb->addAction(deleteInventoryAction);
-        
-        tb->addSeparator();
-    }
-    
-    // Admin and Employee actions
-    if (Authorization::hasPermission(m_role, Authorization::Permission::EditClients)) {
-        auto *addClient = new QAction("➕ Add Client", this);
-        addClient->setToolTip("Add a new client/household");
-        connect(addClient, &QAction::triggered, this, &MainWindow::addClient);
-        tb->addAction(addClient);
-        
-        auto *editClient = new QAction("✏️ Edit Client", this);
-        editClient->setToolTip("Edit selected client");
-        connect(editClient, &QAction::triggered, this, &MainWindow::editClient);
-        tb->addAction(editClient);
-        
-        tb->addSeparator();
-    }
-    
-    // Add/Edit Orders (Admin and Employees)
-    if (Authorization::hasPermission(m_role, Authorization::Permission::AddOrders)) {
-        auto *addOrder = new QAction("📝 New Order", this);
-        addOrder->setToolTip("Create a new work order");
-        connect(addOrder, &QAction::triggered, this, &MainWindow::addWorkOrder);
-        tb->addAction(addOrder);
-        
-        auto *editOrder = new QAction("📋 Edit Order", this);
-        editOrder->setToolTip("Edit selected work order");
-        connect(editOrder, &QAction::triggered, this, &MainWindow::editWorkOrder);
-        tb->addAction(editOrder);
-        
-        tb->addSeparator();
-    }
-    
-    // Inventory Management (Admin and Employees)
-    if (Authorization::hasPermission(m_role, Authorization::Permission::EditInventory)) {
-        auto *addInventory = new QAction("📦 Add Inventory", this);
-        addInventory->setToolTip("Add or update inventory item");
-        connect(addInventory, &QAction::triggered, this, &MainWindow::addInventoryItem);
-        tb->addAction(addInventory);
-        
-        auto *editInventory = new QAction("✏️ Edit Inventory", this);
-        editInventory->setToolTip("Edit selected inventory item");
-        connect(editInventory, &QAction::triggered, this, &MainWindow::editInventoryItem);
-        tb->addAction(editInventory);
-        
-        auto *manageEquip = new QAction("🔧 Equipment", this);
-        manageEquip->setToolTip("Manage equipment maintenance");
-        connect(manageEquip, &QAction::triggered, this, &MainWindow::manageEquipment);
-        tb->addAction(manageEquip);
-        
+        auto *deliveryLogAction = new QAction("🚚 Deliveries", this);
+        deliveryLogAction->setToolTip("View complete delivery log with mileage tracking (Ctrl+D)");
+        connect(deliveryLogAction, &QAction::triggered, this, &MainWindow::viewDeliveryLog);
+        tb->addAction(deliveryLogAction);
         tb->addSeparator();
     }
     
     // Everyone gets refresh
     auto *refreshAction = new QAction("🔄 Refresh", this);
-    refreshAction->setToolTip("Refresh data");
+    refreshAction->setToolTip("Refresh all data (F5)");
     connect(refreshAction, &QAction::triggered, [this]() {
         if (m_householdsModel) m_householdsModel->select();
         if (m_inventoryModel) m_inventoryModel->select();
@@ -692,23 +623,14 @@ void MainWindow::setupToolbar()
     });
     tb->addAction(refreshAction);
     
-    // Delivery Log (Leads and Admins only)
-    if (Authorization::isAdmin(m_role) || Authorization::isLead(m_role)) {
-    tb->addSeparator();
-        auto *deliveryLogAction = new QAction("🚚 Delivery Log", this);
-        deliveryLogAction->setToolTip("View complete delivery log with mileage tracking");
-        connect(deliveryLogAction, &QAction::triggered, this, &MainWindow::viewDeliveryLog);
-        tb->addAction(deliveryLogAction);
-    }
-    
     // Spacer to push logout to the right
     auto *spacer = new QWidget(this);
     spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     tb->addWidget(spacer);
     
     // Everyone gets logout - Make it prominent on the right
-    auto *logoutAction = new QAction("🔥 LOGOUT 🚪", this);
-    logoutAction->setToolTip("Logout and return to login screen");
+    auto *logoutAction = new QAction("🔥 LOGOUT", this);
+    logoutAction->setToolTip("Logout and return to login screen (Ctrl+L)");
     connect(logoutAction, &QAction::triggered, this, &MainWindow::logout);
     tb->addAction(logoutAction);
 }
