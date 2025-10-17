@@ -1,8 +1,11 @@
 #include "database.h"
 #include <QSqlError>
 #include <QSqlQuery>
+#include <QFile>
+#include <QFileInfo>
 #include <QDir>
 #include <QStandardPaths>
+#include <QCoreApplication>
 #include <QDebug>
 
 namespace firewood::db {
@@ -112,28 +115,6 @@ static void runMigrations(QSqlDatabase &db) {
             return;
         }
         
-<<<<<<< Updated upstream
-        // Create default admin user (username: admin, password: admin)
-        // Password hash is SHA-256 of "admin"
-        QSqlQuery insertAdmin(db);
-        insertAdmin.prepare("INSERT INTO users (username, password_hash, role, full_name, email, active) "
-                           "VALUES (:username, :password_hash, :role, :full_name, :email, :active)");
-        insertAdmin.bindValue(":username", "admin");
-        // SHA-256 hash of "admin": 8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918
-        insertAdmin.bindValue(":password_hash", "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918");
-        insertAdmin.bindValue(":role", "admin");
-        insertAdmin.bindValue(":full_name", "System Administrator");
-        insertAdmin.bindValue(":email", "admin@firewoodbank.org");
-        insertAdmin.bindValue(":active", 1);
-        
-        if (!insertAdmin.exec()) {
-            qDebug() << "ERROR: Failed to create default admin user:" << insertAdmin.lastError().text();
-            db.rollback();
-            return;
-        }
-        
-        qDebug() << "Default admin user created successfully";
-=======
         // Create default users (admin, user, volunteer)
         QList<QMap<QString, QString>> defaultUsers = {
             {
@@ -142,6 +123,13 @@ static void runMigrations(QSqlDatabase &db) {
                 {"role", "admin"},
                 {"full_name", "System Administrator"},
                 {"email", "admin@firewoodbank.org"}
+            },
+            {
+                {"username", "lead"},
+                {"password_hash", "a2e88876c089dccf60923bb7cec0fa5e40e91ea2f8c1d8e19d09b12949eb25d3"}, // SHA-256 of "lead"
+                {"role", "lead"},
+                {"full_name", "Team Lead"},
+                {"email", "lead@firewoodbank.org"}
             },
             {
                 {"username", "user"},
@@ -180,7 +168,6 @@ static void runMigrations(QSqlDatabase &db) {
         }
         
         qDebug() << "All default users created successfully";
->>>>>>> Stashed changes
         
         QSqlQuery up(db);
         if (!up.exec("UPDATE schema_version SET version = 2;")) {
@@ -253,8 +240,6 @@ static void runMigrations(QSqlDatabase &db) {
         qDebug() << "Migration 3 completed successfully";
     }
     
-<<<<<<< Updated upstream
-=======
     // Migration 4: Agencies table
     if (version < 4) {
         qDebug() << "Running migration 4: Creating agencies table...";
@@ -691,7 +676,88 @@ static void runMigrations(QSqlDatabase &db) {
         qDebug() << "Migration 8 completed successfully";
     }
     
->>>>>>> Stashed changes
+    // Migration 9: Delivery tracking - mileage, time, auto-inventory update
+    if (version < 9) {
+        qDebug() << "Running migration 9: Adding delivery tracking fields...";
+        
+        // Add delivery tracking fields to orders table
+        QStringList deliveryColumns = {
+            "ALTER TABLE orders ADD COLUMN delivery_time TEXT;",           // Time driver departs
+            "ALTER TABLE orders ADD COLUMN start_mileage REAL DEFAULT 0;", // Starting odometer
+            "ALTER TABLE orders ADD COLUMN end_mileage REAL DEFAULT 0;",   // Ending odometer
+            "ALTER TABLE orders ADD COLUMN completed_date TEXT;"           // When marked complete
+        };
+        
+        for (const QString &sql : deliveryColumns) {
+            if (!query.exec(sql)) {
+                qDebug() << "Note: Could not add delivery column (may already exist):" << query.lastError().text();
+            }
+        }
+        
+        // Create delivery_log table for leads to review
+        if (!query.exec("CREATE TABLE IF NOT EXISTS delivery_log (\n"
+                       "  id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
+                       "  order_id INTEGER NOT NULL,\n"
+                       "  driver TEXT NOT NULL,\n"
+                       "  delivery_date TEXT NOT NULL,\n"
+                       "  delivery_time TEXT,\n"
+                       "  start_mileage REAL NOT NULL,\n"
+                       "  end_mileage REAL NOT NULL,\n"
+                       "  total_miles REAL GENERATED ALWAYS AS (end_mileage - start_mileage) STORED,\n"
+                       "  delivered_cords REAL NOT NULL,\n"
+                       "  client_name TEXT,\n"
+                       "  client_address TEXT,\n"
+                       "  logged_at TEXT DEFAULT CURRENT_TIMESTAMP,\n"
+                       "  FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE\n"
+                       ");")) {
+            qDebug() << "ERROR: Failed to create delivery_log table:" << query.lastError().text();
+            db.rollback();
+            return;
+        }
+        
+        query.exec("CREATE INDEX IF NOT EXISTS idx_delivery_log_driver ON delivery_log(driver);");
+        query.exec("CREATE INDEX IF NOT EXISTS idx_delivery_log_date ON delivery_log(delivery_date);");
+        
+        qDebug() << "Delivery tracking system created successfully";
+        
+        QSqlQuery up(db);
+        if (!up.exec("UPDATE schema_version SET version = 9;")) {
+            qDebug() << "ERROR: Failed to update schema version:" << up.lastError().text();
+            db.rollback();
+            return;
+        }
+        version = 9;
+        qDebug() << "Migration 9 completed successfully";
+    }
+    
+    // Migration 10: Inventory alert levels
+    if (version < 10) {
+        qDebug() << "Running migration 10: Inventory Alert Levels";
+        
+        // Add alert level columns to inventory_items
+        QStringList alertColumns = {
+            "ALTER TABLE inventory_items ADD COLUMN reorder_level REAL DEFAULT 0;",    // When to reorder
+            "ALTER TABLE inventory_items ADD COLUMN emergency_level REAL DEFAULT 0;"   // Critical level
+        };
+        
+        for (const QString &sql : alertColumns) {
+            if (!query.exec(sql)) {
+                qDebug() << "Note: Could not add inventory alert column (may already exist):" << query.lastError().text();
+            }
+        }
+        
+        qDebug() << "Inventory alert system created successfully";
+        
+        QSqlQuery up(db);
+        if (!up.exec("UPDATE schema_version SET version = 10;")) {
+            qDebug() << "ERROR: Failed to update schema version:" << up.lastError().text();
+            db.rollback();
+            return;
+        }
+        version = 10;
+        qDebug() << "Migration 10 completed successfully";
+    }
+    
     if (!db.commit()) {
         qDebug() << "ERROR: Failed to commit transaction:" << db.lastError().text();
         return;
@@ -730,6 +796,123 @@ QSqlDatabase openDefaultConnection() {
     
     qDebug() << "Database connection established successfully";
     return db;
+}
+
+bool loadSqlScript(const QString &filePath, QSqlDatabase &db) {
+    qDebug() << "Loading SQL script from:" << filePath;
+    
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qDebug() << "ERROR: Failed to open SQL file:" << filePath;
+        return false;
+    }
+    
+    QString scriptContent = QString::fromUtf8(file.readAll());
+    file.close();
+    
+    if (scriptContent.isEmpty()) {
+        qDebug() << "WARNING: SQL file is empty:" << filePath;
+        return false;
+    }
+    
+    // Split by semicolons to handle multiple statements
+    QStringList statements = scriptContent.split(';', Qt::SkipEmptyParts);
+    
+    if (!db.transaction()) {
+        qDebug() << "ERROR: Failed to start transaction:" << db.lastError().text();
+        return false;
+    }
+    
+    QSqlQuery query(db);
+    int successCount = 0;
+    int failCount = 0;
+    
+    for (const QString &statement : statements) {
+        QString trimmed = statement.trimmed();
+        
+        // Skip empty statements and comments
+        if (trimmed.isEmpty() || trimmed.startsWith("--")) {
+            continue;
+        }
+        
+        // Skip SELECT statements (they're just for display in the script)
+        if (trimmed.toUpper().startsWith("SELECT")) {
+            continue;
+        }
+        
+        if (!query.exec(trimmed)) {
+            qDebug() << "WARNING: Failed to execute statement:" << trimmed.left(100);
+            qDebug() << "  Error:" << query.lastError().text();
+            failCount++;
+            // Continue anyway - some statements might fail if data already exists
+        } else {
+            successCount++;
+        }
+    }
+    
+    if (!db.commit()) {
+        qDebug() << "ERROR: Failed to commit transaction:" << db.lastError().text();
+        db.rollback();
+        return false;
+    }
+    
+    qDebug() << "SQL script execution completed:";
+    qDebug() << "  Successful statements:" << successCount;
+    qDebug() << "  Failed statements:" << failCount;
+    
+    return successCount > 0;
+}
+
+bool loadSampleData() {
+    qDebug() << "Loading sample data...";
+    
+    QSqlDatabase db = QSqlDatabase::database();
+    if (!db.isValid() || !db.isOpen()) {
+        qDebug() << "ERROR: No database connection available";
+        return false;
+    }
+    
+    // Try multiple possible locations for the sample data file
+    qDebug() << "Current working directory:" << QDir::currentPath();
+    qDebug() << "Application directory:" << QCoreApplication::applicationDirPath();
+    
+    QStringList possiblePaths = {
+        // Absolute path first (most reliable for development)
+        "C:/Users/humbo/firewood_bank/docs/SAMPLE_DATA.sql",
+        // Relative to executable (for Release builds in build/bin/Release/)
+        "../../../docs/SAMPLE_DATA.sql",
+        "../../docs/SAMPLE_DATA.sql",
+        "../docs/SAMPLE_DATA.sql",
+        "docs/SAMPLE_DATA.sql",
+        "./SAMPLE_DATA.sql",
+        // Using application directory path
+        QCoreApplication::applicationDirPath() + "/../../../docs/SAMPLE_DATA.sql",
+    };
+    
+    QString foundPath;
+    for (const QString &path : possiblePaths) {
+        QString absPath = QFileInfo(path).absoluteFilePath();
+        qDebug() << "Checking:" << absPath;
+        if (QFile::exists(absPath)) {
+            foundPath = absPath;
+            qDebug() << "✅ Found sample data file at:" << foundPath;
+            break;
+        }
+    }
+    
+    if (foundPath.isEmpty()) {
+        qDebug() << "ERROR: Could not find SAMPLE_DATA.sql in any expected location";
+        qDebug() << "Tried locations:";
+        for (const QString &path : possiblePaths) {
+            QString absPath = QFileInfo(path).absoluteFilePath();
+            qDebug() << "  -" << absPath << (QFile::exists(absPath) ? "[EXISTS]" : "[NOT FOUND]");
+        }
+        return false;
+    }
+    
+    bool result = loadSqlScript(foundPath, db);
+    qDebug() << "loadSampleData result:" << (result ? "SUCCESS" : "FAILED");
+    return result;
 }
 
 }
