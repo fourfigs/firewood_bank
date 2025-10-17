@@ -35,6 +35,8 @@ private:
     QDoubleSpinBox *m_quantityEdit = nullptr;
     QComboBox *m_unitCombo = nullptr;
     QLineEdit *m_locationEdit = nullptr;
+    QDoubleSpinBox *m_reorderLevelEdit = nullptr;
+    QDoubleSpinBox *m_emergencyLevelEdit = nullptr;
     QTextEdit *m_notesEdit = nullptr;
 };
 

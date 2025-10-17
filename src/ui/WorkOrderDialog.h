@@ -40,5 +40,13 @@ private:
     QComboBox *m_paymentMethodCombo = nullptr;
     QDoubleSpinBox *m_amountPaidEdit = nullptr;
     QTextEdit *m_notesEdit = nullptr;
+    
+    // Delivery tracking fields (NEW!)
+    QLineEdit *m_deliveryTimeEdit = nullptr;         // Time driver departs
+    QDoubleSpinBox *m_startMileageEdit = nullptr;    // Starting odometer
+    QDoubleSpinBox *m_endMileageEdit = nullptr;      // Ending odometer (only shown when completing)
+    
+private slots:
+    void onStatusChanged(const QString &status);
 };
 

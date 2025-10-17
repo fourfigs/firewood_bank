@@ -1,4 +1,6 @@
 #include "MyProfileDialog.h"
+#include "Authorization.h"
+#include "StyleSheet.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QFormLayout>
@@ -8,6 +10,8 @@
 #include <QSqlError>
 #include <QDebug>
 #include <QDateTime>
+
+using namespace firewood::core;
 
 MyProfileDialog::MyProfileDialog(const QString &username, const QString &role, QWidget *parent)
     : QDialog(parent), m_username(username), m_role(role), m_userId(-1)
@@ -59,44 +63,65 @@ void MyProfileDialog::setupUI()
     
     mainLayout->addWidget(currentBox);
     
-    // Request Changes Section
-    auto *changeBox = new QGroupBox("Request Profile Changes", this);
+    // Edit Section - Different for Admin vs Others
+    bool isAdmin = Authorization::isAdmin(m_role);
+    
+    QString boxTitle = isAdmin ? "Edit Profile" : "Request Profile Changes";
+    auto *changeBox = new QGroupBox(boxTitle, this);
     changeBox->setStyleSheet(
-        "QGroupBox { font-weight: bold; border: 2px solid #28a745; "
-        "border-radius: 5px; margin-top: 10px; padding-top: 10px; }"
+        isAdmin ? FirewoodStyles::GROUP_BOX_FIRE : FirewoodStyles::GROUP_BOX_SUCCESS
     );
     auto *changeLayout = new QFormLayout(changeBox);
     
-    auto *infoLabel = new QLabel("<i>Submit changes for admin approval</i>", this);
-    infoLabel->setStyleSheet("color: #666; font-size: 11px;");
-    changeLayout->addRow("", infoLabel);
+    if (!isAdmin) {
+        auto *infoLabel = new QLabel("<i>Submit changes for admin approval</i>", this);
+        infoLabel->setStyleSheet("color: " + FirewoodStyles::ASH_GRAY + "; font-size: 10pt;");
+        changeLayout->addRow("", infoLabel);
+    } else {
+        auto *infoLabel = new QLabel("<i>Administrators can edit their profile directly</i>", this);
+        infoLabel->setStyleSheet("color: " + FirewoodStyles::EMBER_ORANGE + "; font-size: 10pt; font-weight: bold;");
+        changeLayout->addRow("", infoLabel);
+    }
     
     m_newEmailEdit = new QLineEdit(this);
-    m_newEmailEdit->setPlaceholderText("Enter new email address");
-    changeLayout->addRow("New Email:", m_newEmailEdit);
+    m_newEmailEdit->setPlaceholderText("Enter email address");
+    m_newEmailEdit->setStyleSheet(FirewoodStyles::LINE_EDIT);
+    changeLayout->addRow(isAdmin ? "Email:" : "New Email:", m_newEmailEdit);
     
     m_newPhoneEdit = new QLineEdit(this);
-    m_newPhoneEdit->setPlaceholderText("Enter new phone number");
-    changeLayout->addRow("New Phone:", m_newPhoneEdit);
+    m_newPhoneEdit->setPlaceholderText("Enter phone number");
+    m_newPhoneEdit->setStyleSheet(FirewoodStyles::LINE_EDIT);
+    changeLayout->addRow(isAdmin ? "Phone:" : "New Phone:", m_newPhoneEdit);
     
     m_newAvailabilityEdit = new QTextEdit(this);
     m_newAvailabilityEdit->setMaximumHeight(60);
     m_newAvailabilityEdit->setPlaceholderText("Enter your availability (e.g., Weekdays 9AM-5PM)");
-    changeLayout->addRow("New Availability:", m_newAvailabilityEdit);
+    m_newAvailabilityEdit->setStyleSheet(FirewoodStyles::LINE_EDIT);
+    changeLayout->addRow(isAdmin ? "Availability:" : "New Availability:", m_newAvailabilityEdit);
     
     mainLayout->addWidget(changeBox);
     
     // Buttons
     auto *buttonLayout = new QHBoxLayout();
     
-    m_submitButton = new QPushButton("📝 Submit Change Request", this);
-    m_submitButton->setStyleSheet("QPushButton { background-color: #28a745; color: white; padding: 8px 16px; }");
-    connect(m_submitButton, &QPushButton::clicked, this, &MyProfileDialog::requestChange);
+    if (isAdmin) {
+        m_submitButton = new QPushButton("💾 Save Changes", this);
+        m_submitButton->setProperty("class", "primary");
+        m_submitButton->setStyleSheet(FirewoodStyles::PRIMARY_BUTTON);
+        connect(m_submitButton, &QPushButton::clicked, this, &MyProfileDialog::saveDirectly);
+    } else {
+        m_submitButton = new QPushButton("📝 Submit Change Request", this);
+        m_submitButton->setProperty("class", "primary");
+        m_submitButton->setStyleSheet(FirewoodStyles::PRIMARY_BUTTON);
+        connect(m_submitButton, &QPushButton::clicked, this, &MyProfileDialog::requestChange);
+    }
     buttonLayout->addWidget(m_submitButton);
     
     buttonLayout->addStretch();
     
-    auto *closeButton = new QPushButton("Close", this);
+    auto *closeButton = new QPushButton("❌ Close", this);
+    closeButton->setProperty("class", "cancel");
+    closeButton->setStyleSheet(FirewoodStyles::CANCEL_BUTTON);
     connect(closeButton, &QPushButton::clicked, this, &QDialog::accept);
     buttonLayout->addWidget(closeButton);
     
@@ -197,6 +222,32 @@ void MyProfileDialog::submitChangeRequest(const QString &fieldName, const QStrin
         qDebug() << "ERROR: Failed to submit change request:" << query.lastError().text();
         QMessageBox::warning(this, "Warning", 
                            "Failed to submit change for " + fieldName + ": " + query.lastError().text());
+    }
+}
+
+void MyProfileDialog::saveDirectly()
+{
+    // Admin can save changes directly without approval
+    QString newEmail = m_newEmailEdit->text().trimmed();
+    QString newPhone = m_newPhoneEdit->text().trimmed();
+    QString newAvailability = m_newAvailabilityEdit->toPlainText().trimmed();
+    
+    QSqlQuery query;
+    query.prepare("UPDATE users SET email = :email, phone = :phone, availability = :availability "
+                 "WHERE id = :id");
+    query.bindValue(":email", newEmail);
+    query.bindValue(":phone", newPhone);
+    query.bindValue(":availability", newAvailability);
+    query.bindValue(":id", m_userId);
+    
+    if (query.exec()) {
+        QMessageBox::information(this, "Success", 
+                               "Your profile has been updated successfully!");
+        loadProfile();  // Reload to show updated data
+    } else {
+        qDebug() << "ERROR: Failed to save profile:" << query.lastError().text();
+        QMessageBox::critical(this, "Error", 
+                            "Failed to save profile: " + query.lastError().text());
     }
 }
 

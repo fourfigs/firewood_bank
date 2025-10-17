@@ -384,6 +384,61 @@ bool ClientDialog::saveClientData()
         return false;
     }
     
+    // Check for duplicates when adding a new client
+    if (m_isNewClient) {
+        QString name = m_nameEdit->text().trimmed();
+        QString address = m_addressEdit->toPlainText().trimmed();
+        
+        QSqlQuery checkQuery;
+        checkQuery.prepare(
+            "SELECT id, name, address, phone FROM households "
+            "WHERE LOWER(name) = LOWER(:name) OR "
+            "(LOWER(address) = LOWER(:address) AND :address != '')"
+        );
+        checkQuery.bindValue(":name", name);
+        checkQuery.bindValue(":address", address);
+        
+        if (checkQuery.exec() && checkQuery.next()) {
+            int existingId = checkQuery.value(0).toInt();
+            QString existingName = checkQuery.value(1).toString();
+            QString existingAddress = checkQuery.value(2).toString();
+            QString existingPhone = checkQuery.value(3).toString();
+            
+            QMessageBox::StandardButton reply = QMessageBox::question(
+                this,
+                "Possible Duplicate Household",
+                QString("A household with similar information already exists:\n\n"
+                       "Name: %1\n"
+                       "Address: %2\n"
+                       "Phone: %3\n\n"
+                       "Do you want to:\n"
+                       "• Click 'Yes' to edit the existing household instead\n"
+                       "• Click 'No' to add this as a new household anyway\n"
+                       "• Click 'Cancel' to go back and review")
+                    .arg(existingName)
+                    .arg(existingAddress.isEmpty() ? "(No address)" : existingAddress)
+                    .arg(existingPhone.isEmpty() ? "(No phone)" : existingPhone),
+                QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
+                QMessageBox::Yes
+            );
+            
+            if (reply == QMessageBox::Yes) {
+                // Switch to editing the existing client
+                m_clientId = existingId;
+                m_isNewClient = false;
+                loadClientData();
+                loadVolunteerHours();
+                setWindowTitle("Edit Client");
+                QMessageBox::information(this, "Editing Existing Client", 
+                    "You are now editing the existing household. Make any changes and click Save.");
+                return false; // Don't save yet, let user review
+            } else if (reply == QMessageBox::Cancel) {
+                return false; // Cancel the save
+            }
+            // If No, continue with saving as new client
+        }
+    }
+    
     QSqlQuery query;
     
     if (m_isNewClient) {

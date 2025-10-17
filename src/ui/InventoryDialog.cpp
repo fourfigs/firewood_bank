@@ -73,6 +73,35 @@ void InventoryDialog::setupUI()
     m_locationEdit->setPlaceholderText("e.g., Storage Shed A, Main Yard");
     itemLayout->addRow("Location:", m_locationEdit);
     
+    // Alert Levels
+    auto *alertSpacer = new QLabel("<hr><b>📊 Inventory Alerts</b>", this);
+    alertSpacer->setStyleSheet("color: #d97732; padding-top: 10px;");
+    itemLayout->addRow("", alertSpacer);
+    
+    m_reorderLevelEdit = new QDoubleSpinBox(this);
+    m_reorderLevelEdit->setRange(0.0, 999999.0);
+    m_reorderLevelEdit->setSingleStep(1.0);
+    m_reorderLevelEdit->setDecimals(2);
+    m_reorderLevelEdit->setToolTip("Quantity at which to reorder (yellow alert)");
+    m_reorderLevelEdit->setStyleSheet("QDoubleSpinBox { padding: 8px; font-size: 11pt; }");
+    itemLayout->addRow("⚠️ Reorder Level:", m_reorderLevelEdit);
+    
+    m_emergencyLevelEdit = new QDoubleSpinBox(this);
+    m_emergencyLevelEdit->setRange(0.0, 999999.0);
+    m_emergencyLevelEdit->setSingleStep(1.0);
+    m_emergencyLevelEdit->setDecimals(2);
+    m_emergencyLevelEdit->setToolTip("Critical quantity level (red alert)");
+    m_emergencyLevelEdit->setStyleSheet("QDoubleSpinBox { padding: 8px; font-size: 11pt; }");
+    itemLayout->addRow("🚨 Emergency Level:", m_emergencyLevelEdit);
+    
+    auto *alertHelpLabel = new QLabel(
+        "<small><i>Set alert levels to get warnings when stock is low.<br>"
+        "Leave at 0 to disable alerts for this item.</i></small>", this
+    );
+    alertHelpLabel->setWordWrap(true);
+    alertHelpLabel->setStyleSheet("color: #6b7280; padding: 5px 0px;");
+    itemLayout->addRow("", alertHelpLabel);
+    
     mainLayout->addWidget(itemGroup);
     
     // Notes Group
@@ -192,7 +221,8 @@ void InventoryDialog::addNewItem()
 void InventoryDialog::loadItem()
 {
     QSqlQuery query;
-    query.prepare("SELECT category_id, item_name, quantity, unit, location, notes "
+    query.prepare("SELECT category_id, item_name, quantity, unit, location, notes, "
+                 "reorder_level, emergency_level "
                  "FROM inventory_items WHERE id = :id");
     query.bindValue(":id", m_itemId);
     
@@ -225,6 +255,10 @@ void InventoryDialog::loadItem()
     // Set location and notes
     m_locationEdit->setText(query.value(4).toString());
     m_notesEdit->setPlainText(query.value(5).toString());
+    
+    // Load alert levels
+    m_reorderLevelEdit->setValue(query.value(6).toDouble());
+    m_emergencyLevelEdit->setValue(query.value(7).toDouble());
 }
 
 void InventoryDialog::saveItem()
@@ -248,6 +282,8 @@ void InventoryDialog::saveItem()
     QString unit = m_unitCombo->currentText();
     QString location = m_locationEdit->text();
     QString notes = m_notesEdit->toPlainText();
+    double reorderLevel = m_reorderLevelEdit->value();
+    double emergencyLevel = m_emergencyLevelEdit->value();
     
     QSqlQuery query;
     
@@ -264,13 +300,14 @@ void InventoryDialog::saveItem()
             
             query.prepare("UPDATE inventory_items SET quantity = quantity + :qty, "
                          "unit = :unit, location = :location, notes = :notes, "
+                         "reorder_level = :reorder, emergency_level = :emergency, "
                          "last_updated = :updated WHERE id = :id");
             query.bindValue(":qty", quantity);
             query.bindValue(":id", m_itemId);
         } else {
             // Create new item
-            query.prepare("INSERT INTO inventory_items (category_id, item_name, quantity, unit, location, notes, last_updated) "
-                         "VALUES (:cat_id, :name, :qty, :unit, :location, :notes, :updated)");
+            query.prepare("INSERT INTO inventory_items (category_id, item_name, quantity, unit, location, notes, reorder_level, emergency_level, last_updated) "
+                         "VALUES (:cat_id, :name, :qty, :unit, :location, :notes, :reorder, :emergency, :updated)");
             query.bindValue(":cat_id", categoryId);
             query.bindValue(":name", itemName);
             query.bindValue(":qty", quantity);
@@ -279,6 +316,7 @@ void InventoryDialog::saveItem()
         // Update existing item
         query.prepare("UPDATE inventory_items SET category_id = :cat_id, item_name = :name, "
                      "quantity = :qty, unit = :unit, location = :location, notes = :notes, "
+                     "reorder_level = :reorder, emergency_level = :emergency, "
                      "last_updated = :updated WHERE id = :id");
         query.bindValue(":cat_id", categoryId);
         query.bindValue(":name", itemName);
@@ -290,6 +328,8 @@ void InventoryDialog::saveItem()
     query.bindValue(":unit", unit);
     query.bindValue(":location", location);
     query.bindValue(":notes", notes);
+    query.bindValue(":reorder", reorderLevel);
+    query.bindValue(":emergency", emergencyLevel);
     query.bindValue(":updated", QDateTime::currentDateTime().toString(Qt::ISODate));
     
     if (!query.exec()) {

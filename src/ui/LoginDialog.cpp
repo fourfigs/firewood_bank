@@ -1,4 +1,5 @@
 #include "LoginDialog.h"
+#include "StyleSheet.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QFormLayout>
@@ -13,75 +14,105 @@ LoginDialog::LoginDialog(QWidget *parent)
     : QDialog(parent)
 {
     setupUI();
-    setWindowTitle("Firewood Bank - Login");
+    setWindowTitle("🌲 Firewood Bank - Login 🔥");
     setModal(true);
-    setFixedSize(400, 250);
+    setFixedSize(500, 380);
+    
+    // Apply warm background
+    setStyleSheet(
+        "QDialog { background-color: " + FirewoodStyles::SMOKE_WHITE + "; }" +
+        FirewoodStyles::LINE_EDIT + 
+        FirewoodStyles::PRIMARY_BUTTON +
+        FirewoodStyles::CANCEL_BUTTON
+    );
 }
 
 void LoginDialog::setupUI()
 {
     auto *mainLayout = new QVBoxLayout(this);
-    mainLayout->setSpacing(20);
-    mainLayout->setContentsMargins(40, 40, 40, 40);
+    mainLayout->setSpacing(25);
+    mainLayout->setContentsMargins(50, 40, 50, 40);
     
-    // Title
-    auto *titleLabel = new QLabel("Firewood Bank", this);
-    QFont titleFont = titleLabel->font();
-    titleFont.setPointSize(18);
-    titleFont.setBold(true);
-    titleLabel->setFont(titleFont);
-    titleLabel->setAlignment(Qt::AlignCenter);
-    mainLayout->addWidget(titleLabel);
+    // Beautiful header with gradient
+    auto *headerLabel = new QLabel(this);
+    headerLabel->setText(
+        "<div style='text-align: center;'>"
+        "<div style='font-size: 20pt; font-weight: bold; margin-bottom: 8px;'>🌲 Firewood Bank 🔥</div>"
+        "<div style='font-size: 11pt;'>Northern Mendocino Ecosystem Recovery Alliance</div>"
+        "</div>"
+    );
+    headerLabel->setAlignment(Qt::AlignCenter);
+    headerLabel->setStyleSheet(
+        "background: " + FirewoodStyles::GRADIENT_EMBER_TO_FLAME + "; "
+        "color: white; "
+        "border-radius: 10px; "
+        "padding: 25px 20px; "
+        "margin-bottom: 15px;"
+    );
+    mainLayout->addWidget(headerLabel);
     
     auto *subtitleLabel = new QLabel("Please log in to continue", this);
     subtitleLabel->setAlignment(Qt::AlignCenter);
-    subtitleLabel->setStyleSheet("color: #666;");
+    subtitleLabel->setStyleSheet("color: " + FirewoodStyles::CHARCOAL + "; font-size: 11pt; padding: 10px;");
     mainLayout->addWidget(subtitleLabel);
     
-    mainLayout->addSpacing(10);
+    mainLayout->addSpacing(15);
     
-    // Form layout
+    // Form layout with better spacing
     auto *formLayout = new QFormLayout();
-    formLayout->setSpacing(15);
+    formLayout->setSpacing(22);
+    formLayout->setLabelAlignment(Qt::AlignRight);
+    formLayout->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
     
+    auto *usernameLabel = new QLabel("Username:", this);
+    usernameLabel->setStyleSheet("font-size: 11pt; font-weight: bold; color: " + FirewoodStyles::FOREST_GREEN + "; padding-right: 10px;");
     m_usernameEdit = new QLineEdit(this);
     m_usernameEdit->setPlaceholderText("Enter username");
-    m_usernameEdit->setMinimumHeight(30);
-    formLayout->addRow("Username:", m_usernameEdit);
+    m_usernameEdit->setMinimumHeight(42);
+    formLayout->addRow(usernameLabel, m_usernameEdit);
     
+    auto *passwordLabel = new QLabel("Password:", this);
+    passwordLabel->setStyleSheet("font-size: 11pt; font-weight: bold; color: " + FirewoodStyles::FOREST_GREEN + "; padding-right: 10px;");
     m_passwordEdit = new QLineEdit(this);
     m_passwordEdit->setEchoMode(QLineEdit::Password);
     m_passwordEdit->setPlaceholderText("Enter password");
-    m_passwordEdit->setMinimumHeight(30);
-    formLayout->addRow("Password:", m_passwordEdit);
+    m_passwordEdit->setMinimumHeight(42);
+    formLayout->addRow(passwordLabel, m_passwordEdit);
     
     mainLayout->addLayout(formLayout);
     
     // Error label
     m_errorLabel = new QLabel(this);
-    m_errorLabel->setStyleSheet("color: red;");
+    m_errorLabel->setStyleSheet(
+        "color: white; "
+        "background-color: " + FirewoodStyles::FLAME_RED + "; "
+        "padding: 12px; "
+        "border-radius: 6px; "
+        "font-size: 10pt; "
+        "font-weight: bold;"
+    );
     m_errorLabel->setAlignment(Qt::AlignCenter);
     m_errorLabel->setWordWrap(true);
     m_errorLabel->hide();
     mainLayout->addWidget(m_errorLabel);
     
-    mainLayout->addStretch();
+    mainLayout->addSpacing(10);
     
-    // Buttons
+    // Buttons with fiery styling
     auto *buttonLayout = new QHBoxLayout();
-    buttonLayout->setSpacing(10);
+    buttonLayout->setSpacing(15);
     
-    m_cancelButton = new QPushButton("Cancel", this);
-    m_cancelButton->setMinimumHeight(35);
+    m_cancelButton = new QPushButton("❌ Cancel", this);
+    m_cancelButton->setProperty("class", "cancel");
+    m_cancelButton->setMinimumHeight(45);
+    m_cancelButton->setMinimumWidth(140);
     buttonLayout->addWidget(m_cancelButton);
     
-    m_loginButton = new QPushButton("Login", this);
-    m_loginButton->setMinimumHeight(35);
+    m_loginButton = new QPushButton("🔓 Login", this);
+    m_loginButton->setProperty("class", "primary");
+    m_loginButton->setMinimumHeight(45);
+    m_loginButton->setMinimumWidth(140);
     m_loginButton->setDefault(true);
-    m_loginButton->setStyleSheet(
-        "QPushButton { background-color: #0078d4; color: white; font-weight: bold; }"
-        "QPushButton:hover { background-color: #106ebe; }"
-    );
     buttonLayout->addWidget(m_loginButton);
     
     mainLayout->addLayout(buttonLayout);

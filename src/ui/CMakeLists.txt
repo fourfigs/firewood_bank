@@ -5,10 +5,6 @@ add_library(ui STATIC
     LoginDialog.h
     DashboardWidget.cpp
     DashboardWidget.h
-<<<<<<< Updated upstream
-    ClientDialog.cpp
-    ClientDialog.h
-=======
     VolunteerProfileWidget.cpp
     VolunteerProfileWidget.h
     ClientDialog.cpp
@@ -27,7 +23,8 @@ add_library(ui STATIC
     EmployeeDirectoryDialog.h
     ProfileChangeRequestDialog.cpp
     ProfileChangeRequestDialog.h
->>>>>>> Stashed changes
+    DeliveryLogDialog.cpp
+    DeliveryLogDialog.h
 )
 
 target_include_directories(ui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
@@ -41,5 +38,4 @@ target_link_libraries(ui
 )
 
 add_library(firewood::ui ALIAS ui)
-
 

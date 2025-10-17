@@ -16,12 +16,6 @@ public:
                        const QString &role, QWidget *parent = nullptr);
     ~MainWindow() = default;
 
-<<<<<<< Updated upstream
-private slots:
-    void addClient();
-    void editClient();
-    void onClientDoubleClicked(const QModelIndex &index);
-=======
 signals:
     void logoutRequested();
 
@@ -30,6 +24,7 @@ private slots:
     void viewMyProfile();
     void viewEmployeeDirectory();
     void viewProfileChangeRequests();
+    void viewDeliveryLog();  // NEW: View delivery log for leads/admins
     void addClient();
     void editClient();
     void onClientDoubleClicked(const QModelIndex &index);
@@ -42,19 +37,24 @@ private slots:
     void manageEquipment();
     void manageUsers();
     void manageAgencies();
->>>>>>> Stashed changes
+    void loadSampleData();
+    void exportClientsToCSV();
+    void exportOrdersToCSV();
+    void exportInventoryToCSV();
+    void clearAllData();
+    void deleteSelectedClient();
+    void deleteSelectedOrder();
+    void deleteSelectedInventoryItem();
 
 private:
     void setupUI();
+    void setupMenuBar();
     void setupDatabaseModels();
     void setupToolbar();
     void logDatabaseStatus();
     void loadUserInfo();
-<<<<<<< Updated upstream
-=======
     void applyRoleBasedPermissions();
     void setupVolunteerView();
->>>>>>> Stashed changes
     
     // User info
     QString m_username;
@@ -67,18 +67,12 @@ private:
     QTabWidget *m_tabs = nullptr;
     QTableView *m_householdsView = nullptr;
     QTableView *m_inventoryView = nullptr;
-<<<<<<< Updated upstream
-=======
     QTableView *m_ordersView = nullptr;
->>>>>>> Stashed changes
     
     // Database Models
     QSqlTableModel *m_householdsModel = nullptr;
     QSqlTableModel *m_inventoryModel = nullptr;
-<<<<<<< Updated upstream
-=======
     QSqlTableModel *m_ordersModel = nullptr;
->>>>>>> Stashed changes
 };
 
 // Factory function for creating MainWindow instances

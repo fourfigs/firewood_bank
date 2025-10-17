@@ -16,6 +16,7 @@ public:
 private slots:
     void loadProfile();
     void requestChange();
+    void saveDirectly();  // For admin direct editing
 
 private:
     void setupUI();

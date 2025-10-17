@@ -25,6 +25,7 @@ public:
 
 private:
     void setupUI();
+    void createStatisticsSection();  // NEW: For leads and admins
     void createTopSection();
     void createBottomSection();
     void loadUpcomingOrders();
@@ -32,9 +33,21 @@ private:
     void loadEmergencies();
     void loadLowInventory();
     void updateMonthlyCalendar();
+    void loadStatistics();  // NEW: Load statistics data
     
     // User info
     UserInfo m_userInfo;
+    
+    // Statistics widgets (for leads and admins)
+    QLabel *m_totalHouseholdsLabel = nullptr;
+    QLabel *m_woodDeliveredWeekLabel = nullptr;
+    QLabel *m_woodDeliveredMonthLabel = nullptr;
+    QLabel *m_woodDeliveredYearLabel = nullptr;
+    QLabel *m_woodDeliveredAllTimeLabel = nullptr;
+    QLabel *m_expenseWeekLabel = nullptr;
+    QLabel *m_expenseMonthLabel = nullptr;
+    QLabel *m_expenseYearLabel = nullptr;
+    QLabel *m_expenseAllTimeLabel = nullptr;
     
     // Top section widgets
     QLabel *m_userNameLabel = nullptr;
@@ -51,5 +64,6 @@ private:
     
     QFrame* createSection(const QString &title, QWidget *content);
     QGroupBox* createGroupBox(const QString &title);
+    QFrame* createSeparator();
 };
 
