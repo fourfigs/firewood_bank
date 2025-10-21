@@ -486,7 +486,7 @@ firewood_bank/
 │       ├── LoginDialog.cpp/h           # Authentication
 │       ├── DashboardWidget.cpp/h       # Statistics
 │       ├── ClientDialog.cpp/h          # Household management
-│       ├── WorkOrderDialog.cpp/h       # Order processing
+│       ├── WorkOrderDialogb.cpp/h      # Order processing
 │       ├── InventoryDialog.cpp/h       # Stock management
 │       ├── DeliveryLogDialog.cpp/h     # Mileage tracking
 │       ├── EmployeeDirectoryDialog.cpp/h
@@ -514,7 +514,7 @@ firewood_bank/
 ### Key Files to Understand
 
 **Critical Business Logic:**
-- `src/ui/WorkOrderDialog.cpp` - Order processing, auto-inventory
+- `src/ui/WorkOrderDialogb.cpp` - Order processing, auto-inventory
 - `src/db/database.cpp` - All migrations, schema evolution
 - `src/core/Authorization.cpp` - Permission rules
 

@@ -34,18 +34,18 @@ void ExpenseDialog::setupUI()
 {
     setModal(true);
     setFixedSize(500, 600);
-    setStyleSheet(FirewoodStyles::MAIN_WINDOW);
+    setStyleSheet(AdobeStyles::MAIN_WINDOW);
 
     auto *mainLayout = new QVBoxLayout(this);
     mainLayout->setSpacing(20);
     mainLayout->setContentsMargins(20, 20, 20, 20);
 
-    // Header
-    auto *headerLabel = new QLabel("💸 Expense Entry", this);
+    // Header with firewood theme
+    auto *headerLabel = new QLabel(AdobeStyles::ICON_MONEY + " Expense Entry", this);
     headerLabel->setStyleSheet(
         "font-size: 16pt; font-weight: bold; color: white; "
-        "background: " + FirewoodStyles::GRADIENT_EMBER_TO_FLAME + "; "
-        "padding: 15px; border-radius: 8px; text-align: center;"
+        "background: " + AdobeStyles::GRADIENT_PRIMARY + "; "
+        "padding: 15px; border-radius: 10px; text-align: center;"
     );
     headerLabel->setAlignment(Qt::AlignCenter);
     mainLayout->addWidget(headerLabel);
@@ -58,12 +58,12 @@ void ExpenseDialog::setupUI()
     // Date
     m_dateEdit = new QDateEdit(QDate::currentDate(), formGroup);
     m_dateEdit->setCalendarPopup(true);
-    m_dateEdit->setStyleSheet(FirewoodStyles::LINE_EDIT);
+    m_dateEdit->setStyleSheet(AdobeStyles::LINE_EDIT);
     formLayout->addRow("Date:", m_dateEdit);
 
     // Category
     m_categoryCombo = new QComboBox(formGroup);
-    m_categoryCombo->setStyleSheet(FirewoodStyles::COMBO_BOX);
+    m_categoryCombo->setStyleSheet(AdobeStyles::COMBO_BOX);
     formLayout->addRow("Category:", m_categoryCombo);
 
     // Amount
@@ -71,19 +71,19 @@ void ExpenseDialog::setupUI()
     m_amountSpinBox->setRange(0.01, 999999.99);
     m_amountSpinBox->setDecimals(2);
     m_amountSpinBox->setPrefix("$");
-    m_amountSpinBox->setStyleSheet(FirewoodStyles::LINE_EDIT);
+    m_amountSpinBox->setStyleSheet(AdobeStyles::LINE_EDIT);
     formLayout->addRow("Amount:", m_amountSpinBox);
 
     // Description
     m_descriptionEdit = new QLineEdit(formGroup);
     m_descriptionEdit->setPlaceholderText("Brief description of the expense...");
-    m_descriptionEdit->setStyleSheet(FirewoodStyles::LINE_EDIT);
+    m_descriptionEdit->setStyleSheet(AdobeStyles::LINE_EDIT);
     formLayout->addRow("Description:", m_descriptionEdit);
 
     // Vendor
     m_vendorEdit = new QLineEdit(formGroup);
     m_vendorEdit->setPlaceholderText("Store, company, or person paid...");
-    m_vendorEdit->setStyleSheet(FirewoodStyles::LINE_EDIT);
+    m_vendorEdit->setStyleSheet(AdobeStyles::LINE_EDIT);
     formLayout->addRow("Vendor:", m_vendorEdit);
 
     // Receipt file
@@ -91,10 +91,10 @@ void ExpenseDialog::setupUI()
     m_receiptPathEdit = new QLineEdit(formGroup);
     m_receiptPathEdit->setPlaceholderText("No receipt selected...");
     m_receiptPathEdit->setReadOnly(true);
-    m_receiptPathEdit->setStyleSheet(FirewoodStyles::LINE_EDIT);
+    m_receiptPathEdit->setStyleSheet(AdobeStyles::LINE_EDIT);
     
     m_selectReceiptBtn = new QPushButton("📁 Browse", formGroup);
-    m_selectReceiptBtn->setStyleSheet(FirewoodStyles::PRIMARY_BUTTON);
+    m_selectReceiptBtn->setStyleSheet(AdobeStyles::PRIMARY_BUTTON);
     connect(m_selectReceiptBtn, &QPushButton::clicked, this, &ExpenseDialog::selectReceiptFile);
     
     receiptLayout->addWidget(m_receiptPathEdit);
@@ -104,14 +104,14 @@ void ExpenseDialog::setupUI()
     // Payment method
     m_paymentMethodCombo = new QComboBox(formGroup);
     m_paymentMethodCombo->addItems({"cash", "check", "card", "bank_transfer", "other"});
-    m_paymentMethodCombo->setStyleSheet(FirewoodStyles::COMBO_BOX);
+    m_paymentMethodCombo->setStyleSheet(AdobeStyles::COMBO_BOX);
     formLayout->addRow("Payment Method:", m_paymentMethodCombo);
 
     // Notes
     m_notesEdit = new QTextEdit(formGroup);
     m_notesEdit->setPlaceholderText("Additional notes or details...");
     m_notesEdit->setMaximumHeight(80);
-    m_notesEdit->setStyleSheet(FirewoodStyles::TEXT_EDIT);
+    m_notesEdit->setStyleSheet(AdobeStyles::TEXT_EDIT);
     formLayout->addRow("Notes:", m_notesEdit);
 
     mainLayout->addWidget(formGroup);
@@ -121,13 +121,13 @@ void ExpenseDialog::setupUI()
     buttonLayout->addStretch();
 
     m_cancelBtn = new QPushButton("❌ Cancel", this);
-    m_cancelBtn->setStyleSheet(FirewoodStyles::CANCEL_BUTTON);
+    m_cancelBtn->setStyleSheet(AdobeStyles::CANCEL_BUTTON);
     m_cancelBtn->setMinimumHeight(40);
     connect(m_cancelBtn, &QPushButton::clicked, this, &QDialog::reject);
     buttonLayout->addWidget(m_cancelBtn);
 
     m_saveBtn = new QPushButton("💾 Save Expense", this);
-    m_saveBtn->setStyleSheet(FirewoodStyles::PRIMARY_BUTTON);
+    m_saveBtn->setStyleSheet(AdobeStyles::PRIMARY_BUTTON);
     m_saveBtn->setMinimumHeight(40);
     m_saveBtn->setDefault(true);
     connect(m_saveBtn, &QPushButton::clicked, this, &ExpenseDialog::accept);

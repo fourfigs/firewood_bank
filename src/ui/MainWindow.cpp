@@ -103,7 +103,7 @@ void MainWindow::setupUI()
 {
   qDebug() << "Setting up UI...";
 
-  setStyleSheet(FirewoodStyles::MAIN_WINDOW + FirewoodStyles::TAB_WIDGET);
+  setStyleSheet(AdobeStyles::APPLICATION_STYLE);
 
   auto* tabs = new QTabWidget(this);
   setCentralWidget(tabs);
@@ -163,7 +163,7 @@ void MainWindow::setupDatabaseModels()
     m_householdsView->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_householdsView->setSelectionMode(QAbstractItemView::SingleSelection);
     m_householdsView->setAlternatingRowColors(true);
-    m_householdsView->setStyleSheet(FirewoodStyles::TABLE_VIEW);
+    m_householdsView->setStyleSheet(AdobeStyles::TABLE_VIEW);
     m_householdsView->setSortingEnabled(true);
     connect(m_householdsView, &QTableView::doubleClicked, this, &MainWindow::onClientDoubleClicked);
 
@@ -208,7 +208,7 @@ void MainWindow::setupDatabaseModels()
     auto *searchLabel = new QLabel("🔍 Search Clients:", clientsTab);
     auto *clientSearchBox = new QLineEdit(clientsTab);
     clientSearchBox->setPlaceholderText("Search by name, phone, or address...");
-    clientSearchBox->setStyleSheet(FirewoodStyles::LINE_EDIT);
+    clientSearchBox->setStyleSheet(AdobeStyles::LINE_EDIT);
     
     connect(clientSearchBox, &QLineEdit::textChanged, this, &MainWindow::searchClients);
     
@@ -241,7 +241,7 @@ void MainWindow::setupDatabaseModels()
     m_inventoryView->setSelectionMode(QAbstractItemView::SingleSelection);
     m_inventoryView->setAlternatingRowColors(true);
     m_inventoryView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    m_inventoryView->setStyleSheet(FirewoodStyles::TABLE_VIEW);
+    m_inventoryView->setStyleSheet(AdobeStyles::TABLE_VIEW);
     m_inventoryView->setSortingEnabled(true);
     connect(m_inventoryView, &QTableView::doubleClicked, this, &MainWindow::onInventoryDoubleClicked);
 
@@ -272,7 +272,7 @@ void MainWindow::setupDatabaseModels()
     auto *invSearchLabel = new QLabel("🔍 Search Inventory:", inventoryTab);
     auto *inventorySearchBox = new QLineEdit(inventoryTab);
     inventorySearchBox->setPlaceholderText("Search by item name or category...");
-    inventorySearchBox->setStyleSheet(FirewoodStyles::LINE_EDIT);
+    inventorySearchBox->setStyleSheet(AdobeStyles::LINE_EDIT);
     
     connect(inventorySearchBox, &QLineEdit::textChanged, this, &MainWindow::searchInventory);
     
@@ -305,7 +305,7 @@ void MainWindow::setupDatabaseModels()
     m_ordersView->setSelectionMode(QAbstractItemView::SingleSelection);
     m_ordersView->setAlternatingRowColors(true);
     m_ordersView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    m_ordersView->setStyleSheet(FirewoodStyles::TABLE_VIEW);
+    m_ordersView->setStyleSheet(AdobeStyles::TABLE_VIEW);
     m_ordersView->setSortingEnabled(true);
     connect(m_ordersView, &QTableView::doubleClicked, this, &MainWindow::onWorkOrderDoubleClicked);
 
@@ -346,7 +346,7 @@ void MainWindow::setupDatabaseModels()
     auto *orderSearchLabel = new QLabel("🔍 Search Orders:", ordersTab);
     auto *orderSearchBox = new QLineEdit(ordersTab);
     orderSearchBox->setPlaceholderText("Search by status, priority, or date...");
-    orderSearchBox->setStyleSheet(FirewoodStyles::LINE_EDIT);
+    orderSearchBox->setStyleSheet(AdobeStyles::LINE_EDIT);
     
     connect(orderSearchBox, &QLineEdit::textChanged, this, &MainWindow::searchOrders);
     
@@ -598,14 +598,14 @@ void MainWindow::setupToolbar()
     tb->setIconSize(QSize(24, 24));
     
     // Everyone can view their own profile
-    auto *myProfileAction = new QAction("👤 My Profile", this);
+    auto *myProfileAction = new QAction(AdobeStyles::ICON_USERS + " My Profile", this);
     myProfileAction->setToolTip("View and edit my profile");
     connect(myProfileAction, &QAction::triggered, this, &MainWindow::viewMyProfile);
     tb->addAction(myProfileAction);
     
     // Employees and Admins can view employee directory
     if (Authorization::hasPermission(m_userType, Authorization::Permission::ViewClients)) {
-        auto *employeeDirectoryAction = new QAction("👥 Employee Directory", this);
+        auto *employeeDirectoryAction = new QAction(AdobeStyles::ICON_USERS + " Employee Directory", this);
         employeeDirectoryAction->setToolTip("CRM employee contact information");
         connect(employeeDirectoryAction, &QAction::triggered, this, &MainWindow::viewEmployeeDirectory);
         tb->addAction(employeeDirectoryAction);
@@ -615,12 +615,12 @@ void MainWindow::setupToolbar()
     
     // Admin-only actions
     if (Authorization::hasPermission(m_userType, Authorization::Permission::ManageUsers)) {
-        auto *changeRequestsAction = new QAction("📋 Change Requests", this);
+        auto *changeRequestsAction = new QAction(AdobeStyles::ICON_ORDERS + " Change Requests", this);
         changeRequestsAction->setToolTip("Review profile change requests");
         connect(changeRequestsAction, &QAction::triggered, this, &MainWindow::viewProfileChangeRequests);
         tb->addAction(changeRequestsAction);
         tb->addSeparator();
-        auto *manageUsersAction = new QAction("👨‍💼 Manage Users", this);
+        auto *manageUsersAction = new QAction(AdobeStyles::ICON_SETTINGS + " Manage Users", this);
         manageUsersAction->setToolTip("Manage system users");
         connect(manageUsersAction, &QAction::triggered, this, &MainWindow::manageUsers);
         tb->addAction(manageUsersAction);
@@ -635,12 +635,12 @@ void MainWindow::setupToolbar()
     
     // Admin and Employee actions
     if (Authorization::hasPermission(m_userType, Authorization::Permission::EditClients)) {
-        auto *addClient = new QAction("👥 Add Client", this);
+        auto *addClient = new QAction(AdobeStyles::ICON_ADD + " Add Client", this);
         addClient->setToolTip("Add a new client/household");
         connect(addClient, &QAction::triggered, this, &MainWindow::addClient);
         tb->addAction(addClient);
         
-        auto *editClient = new QAction("✏️ Edit Client", this);
+        auto *editClient = new QAction(AdobeStyles::ICON_EDIT + " Edit Client", this);
         editClient->setToolTip("Edit selected client");
         connect(editClient, &QAction::triggered, this, &MainWindow::editClient);
         tb->addAction(editClient);
@@ -650,12 +650,12 @@ void MainWindow::setupToolbar()
     
     // Add/Edit Orders (Admin and Employees)
     if (Authorization::hasPermission(m_userType, Authorization::Permission::AddOrders)) {
-        auto *addOrder = new QAction("📋 New Order", this);
+        auto *addOrder = new QAction(AdobeStyles::ICON_ORDERS + " New Order", this);
         addOrder->setToolTip("Create a new work order");
         connect(addOrder, &QAction::triggered, this, &MainWindow::addWorkOrder);
         tb->addAction(addOrder);
         
-        auto *editOrder = new QAction("📝 Edit Order", this);
+        auto *editOrder = new QAction(AdobeStyles::ICON_EDIT + " Edit Order", this);
         editOrder->setToolTip("Edit selected work order");
         connect(editOrder, &QAction::triggered, this, &MainWindow::editWorkOrder);
         tb->addAction(editOrder);
@@ -665,12 +665,12 @@ void MainWindow::setupToolbar()
     
     // Inventory Management (Admin and Employees)
     if (Authorization::hasPermission(m_userType, Authorization::Permission::EditInventory)) {
-        auto *addInventory = new QAction("📦 Add Inventory", this);
+        auto *addInventory = new QAction(AdobeStyles::ICON_INVENTORY + " Add Inventory", this);
         addInventory->setToolTip("Add or update inventory item");
         connect(addInventory, &QAction::triggered, this, &MainWindow::addInventoryItem);
         tb->addAction(addInventory);
         
-        auto *editInventory = new QAction("✏️ Edit Inventory", this);
+        auto *editInventory = new QAction(AdobeStyles::ICON_EDIT + " Edit Inventory", this);
         editInventory->setToolTip("Edit selected inventory item");
         connect(editInventory, &QAction::triggered, this, &MainWindow::editInventoryItem);
         tb->addAction(editInventory);
@@ -684,7 +684,7 @@ void MainWindow::setupToolbar()
     }
     
     // Everyone gets refresh
-    auto *refreshAction = new QAction("🔄 Refresh", this);
+    auto *refreshAction = new QAction(AdobeStyles::ICON_REFRESH + " Refresh", this);
     refreshAction->setToolTip("Refresh data");
     connect(refreshAction, &QAction::triggered, [this]() {
         if (m_householdsModel) m_householdsModel->select();
@@ -696,7 +696,7 @@ void MainWindow::setupToolbar()
     tb->addSeparator();
     
     // Everyone gets logout
-    auto *logoutAction = new QAction("🚪 Logout", this);
+    auto *logoutAction = new QAction(AdobeStyles::ICON_LOGOUT + " Logout", this);
     logoutAction->setToolTip("Logout and return to login screen");
     connect(logoutAction, &QAction::triggered, this, &MainWindow::logout);
     tb->addAction(logoutAction);

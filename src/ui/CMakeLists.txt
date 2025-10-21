@@ -15,7 +15,7 @@ add_library(ui STATIC
     IncomeDialog.h
     ClientDialog.cpp
     ClientDialog.h
-    WorkOrderDialog.cpp
+    WorkOrderDialogb.cpp
     WorkOrderDialog.h
     InventoryDialog.cpp
     InventoryDialog.h

@@ -31,18 +31,18 @@ void IncomeDialog::setupUI()
 {
     setModal(true);
     setFixedSize(500, 550);
-    setStyleSheet(FirewoodStyles::MAIN_WINDOW);
+    setStyleSheet(AdobeStyles::MAIN_WINDOW);
 
     auto *mainLayout = new QVBoxLayout(this);
     mainLayout->setSpacing(20);
     mainLayout->setContentsMargins(20, 20, 20, 20);
 
-    // Header
-    auto *headerLabel = new QLabel("💰 Income Entry", this);
+    // Header with firewood theme
+    auto *headerLabel = new QLabel(AdobeStyles::ICON_MONEY + " Income Entry", this);
     headerLabel->setStyleSheet(
         "font-size: 16pt; font-weight: bold; color: white; "
-        "background: " + FirewoodStyles::GRADIENT_EMBER_TO_FLAME + "; "
-        "padding: 15px; border-radius: 8px; text-align: center;"
+        "background: " + AdobeStyles::GRADIENT_PRIMARY + "; "
+        "padding: 15px; border-radius: 10px; text-align: center;"
     );
     headerLabel->setAlignment(Qt::AlignCenter);
     mainLayout->addWidget(headerLabel);
@@ -55,12 +55,12 @@ void IncomeDialog::setupUI()
     // Date
     m_dateEdit = new QDateEdit(QDate::currentDate(), formGroup);
     m_dateEdit->setCalendarPopup(true);
-    m_dateEdit->setStyleSheet(FirewoodStyles::LINE_EDIT);
+    m_dateEdit->setStyleSheet(AdobeStyles::LINE_EDIT);
     formLayout->addRow("Date:", m_dateEdit);
 
     // Source
     m_sourceCombo = new QComboBox(formGroup);
-    m_sourceCombo->setStyleSheet(FirewoodStyles::COMBO_BOX);
+    m_sourceCombo->setStyleSheet(AdobeStyles::COMBO_BOX);
     connect(m_sourceCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), 
             this, &IncomeDialog::onSourceChanged);
     formLayout->addRow("Source:", m_sourceCombo);
@@ -70,19 +70,19 @@ void IncomeDialog::setupUI()
     m_amountSpinBox->setRange(0.01, 999999.99);
     m_amountSpinBox->setDecimals(2);
     m_amountSpinBox->setPrefix("$");
-    m_amountSpinBox->setStyleSheet(FirewoodStyles::LINE_EDIT);
+    m_amountSpinBox->setStyleSheet(AdobeStyles::LINE_EDIT);
     formLayout->addRow("Amount:", m_amountSpinBox);
 
     // Description
     m_descriptionEdit = new QLineEdit(formGroup);
     m_descriptionEdit->setPlaceholderText("Brief description of the income...");
-    m_descriptionEdit->setStyleSheet(FirewoodStyles::LINE_EDIT);
+    m_descriptionEdit->setStyleSheet(AdobeStyles::LINE_EDIT);
     formLayout->addRow("Description:", m_descriptionEdit);
 
     // Donor name (for donations)
     m_donorNameEdit = new QLineEdit(formGroup);
     m_donorNameEdit->setPlaceholderText("Name of donor or organization...");
-    m_donorNameEdit->setStyleSheet(FirewoodStyles::LINE_EDIT);
+    m_donorNameEdit->setStyleSheet(AdobeStyles::LINE_EDIT);
     formLayout->addRow("Donor/Source Name:", m_donorNameEdit);
 
     // Tax deductible checkbox
@@ -100,7 +100,7 @@ void IncomeDialog::setupUI()
     m_notesEdit = new QTextEdit(formGroup);
     m_notesEdit->setPlaceholderText("Additional notes or details...");
     m_notesEdit->setMaximumHeight(80);
-    m_notesEdit->setStyleSheet(FirewoodStyles::TEXT_EDIT);
+    m_notesEdit->setStyleSheet(AdobeStyles::TEXT_EDIT);
     formLayout->addRow("Notes:", m_notesEdit);
 
     mainLayout->addWidget(formGroup);
@@ -110,13 +110,13 @@ void IncomeDialog::setupUI()
     buttonLayout->addStretch();
 
     m_cancelBtn = new QPushButton("❌ Cancel", this);
-    m_cancelBtn->setStyleSheet(FirewoodStyles::CANCEL_BUTTON);
+    m_cancelBtn->setStyleSheet(AdobeStyles::CANCEL_BUTTON);
     m_cancelBtn->setMinimumHeight(40);
     connect(m_cancelBtn, &QPushButton::clicked, this, &QDialog::reject);
     buttonLayout->addWidget(m_cancelBtn);
 
     m_saveBtn = new QPushButton("💾 Save Income", this);
-    m_saveBtn->setStyleSheet(FirewoodStyles::PRIMARY_BUTTON);
+    m_saveBtn->setStyleSheet(AdobeStyles::PRIMARY_BUTTON);
     m_saveBtn->setMinimumHeight(40);
     m_saveBtn->setDefault(true);
     connect(m_saveBtn, &QPushButton::clicked, this, &IncomeDialog::accept);

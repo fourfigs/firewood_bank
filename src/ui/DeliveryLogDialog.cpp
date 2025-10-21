@@ -34,33 +34,33 @@ void DeliveryLogDialog::setupUI()
   headerLabel->setAlignment(Qt::AlignCenter);
   headerLabel->setStyleSheet(
     "background: qlineargradient(x1:0, y1:0, x2:1, y2:0, "
-    "stop:0 " + FirewoodStyles::EMBER_ORANGE + ", "
-    "stop:1 " + FirewoodStyles::FLAME_RED + "); "
+    "stop:0 " + AdobeStyles::ADOBE_BLUE + ", "
+    "stop:1 " + AdobeStyles::ADOBE_BLUE_DARK + "); "
     "color: white; font-size: 18pt; font-weight: bold; padding: 15px; "
     "border-radius: 8px; margin-bottom: 10px;"
   );
   mainLayout->addWidget(headerLabel);
 
   auto* filtersGroup = new QGroupBox("📅 Filters", this);
-  filtersGroup->setStyleSheet(FirewoodStyles::GROUP_BOX);
+  filtersGroup->setStyleSheet(AdobeStyles::GROUP_BOX);
   auto* filtersLayout = new QHBoxLayout(filtersGroup);
 
   auto* dateFilterLayout = new QFormLayout();
   m_startDateEdit = new QDateEdit(QDate::currentDate().addMonths(-1), this);
   m_startDateEdit->setCalendarPopup(true);
-  m_startDateEdit->setStyleSheet(FirewoodStyles::LINE_EDIT);
+  m_startDateEdit->setStyleSheet(AdobeStyles::LINE_EDIT);
   dateFilterLayout->addRow("From:", m_startDateEdit);
 
   m_endDateEdit = new QDateEdit(QDate::currentDate(), this);
   m_endDateEdit->setCalendarPopup(true);
-  m_endDateEdit->setStyleSheet(FirewoodStyles::LINE_EDIT);
+  m_endDateEdit->setStyleSheet(AdobeStyles::LINE_EDIT);
   dateFilterLayout->addRow("To:", m_endDateEdit);
 
   filtersLayout->addLayout(dateFilterLayout);
 
   auto* driverLayout = new QFormLayout();
   m_driverFilterCombo = new QComboBox(this);
-  m_driverFilterCombo->setStyleSheet(FirewoodStyles::COMBO_BOX);
+  m_driverFilterCombo->setStyleSheet(AdobeStyles::COMBO_BOX);
   populateDriverFilter();
   driverLayout->addRow("Driver:", m_driverFilterCombo);
   filtersLayout->addLayout(driverLayout);
@@ -75,13 +75,13 @@ void DeliveryLogDialog::setupUI()
   }
 
   auto* applyButton = new QPushButton("🔍 Apply Filters", this);
-  applyButton->setStyleSheet(FirewoodStyles::PRIMARY_BUTTON);
+  applyButton->setStyleSheet(AdobeStyles::PRIMARY_BUTTON);
   applyButton->setMinimumHeight(40);
   connect(applyButton, &QPushButton::clicked, this, &DeliveryLogDialog::applyFilters);
   filtersLayout->addWidget(applyButton);
 
   auto* exportButton = new QPushButton("📊 Export to CSV", this);
-  exportButton->setStyleSheet(FirewoodStyles::SECONDARY_BUTTON);
+  exportButton->setStyleSheet(AdobeStyles::SECONDARY_BUTTON);
   exportButton->setMinimumHeight(40);
   connect(exportButton, &QPushButton::clicked, this, &DeliveryLogDialog::exportToCsv);
   filtersLayout->addWidget(exportButton);
@@ -89,7 +89,7 @@ void DeliveryLogDialog::setupUI()
   mainLayout->addWidget(filtersGroup);
 
   auto* statsGroup = new QGroupBox("📊 Summary Statistics", this);
-  statsGroup->setStyleSheet(FirewoodStyles::GROUP_BOX_SUCCESS);
+  statsGroup->setStyleSheet(AdobeStyles::GROUP_BOX_SUCCESS);
   auto* statsLayout = new QHBoxLayout(statsGroup);
 
   m_deliveryCountLabel = new QLabel("<b>Deliveries:</b> 0", this);
@@ -112,7 +112,7 @@ void DeliveryLogDialog::setupUI()
   m_logTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
   m_logTable->setSelectionBehavior(QAbstractItemView::SelectRows);
   m_logTable->setAlternatingRowColors(true);
-  m_logTable->setStyleSheet(FirewoodStyles::TABLE_VIEW);
+  m_logTable->setStyleSheet(AdobeStyles::TABLE_VIEW);
   m_logTable->horizontalHeader()->setStretchLastSection(true);
   m_logTable->verticalHeader()->setVisible(false);
   m_logTable->setSortingEnabled(true);
@@ -123,7 +123,7 @@ void DeliveryLogDialog::setupUI()
   buttonLayout->addStretch();
 
   auto* closeButton = new QPushButton("✅ Close", this);
-  closeButton->setStyleSheet(FirewoodStyles::CANCEL_BUTTON);
+  closeButton->setStyleSheet(AdobeStyles::CANCEL_BUTTON);
   closeButton->setMinimumHeight(40);
   closeButton->setMinimumWidth(120);
   connect(closeButton, &QPushButton::clicked, this, &QDialog::accept);

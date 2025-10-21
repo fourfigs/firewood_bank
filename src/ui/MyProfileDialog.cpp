@@ -69,34 +69,34 @@ void MyProfileDialog::setupUI()
     QString boxTitle = isAdmin ? "Edit Profile" : "Request Profile Changes";
     auto *changeBox = new QGroupBox(boxTitle, this);
     changeBox->setStyleSheet(
-        isAdmin ? FirewoodStyles::GROUP_BOX_FIRE : FirewoodStyles::GROUP_BOX_SUCCESS
+        isAdmin ? AdobeStyles::GROUP_BOX_FIRE : AdobeStyles::GROUP_BOX_SUCCESS
     );
     auto *changeLayout = new QFormLayout(changeBox);
     
     if (!isAdmin) {
         auto *infoLabel = new QLabel("<i>Submit changes for admin approval</i>", this);
-        infoLabel->setStyleSheet("color: " + FirewoodStyles::ASH_GRAY + "; font-size: 10pt;");
+        infoLabel->setStyleSheet("color: " + AdobeStyles::TEXT_SECONDARY + "; font-size: 10pt;");
         changeLayout->addRow("", infoLabel);
     } else {
         auto *infoLabel = new QLabel("<i>Administrators can edit their profile directly</i>", this);
-        infoLabel->setStyleSheet("color: " + FirewoodStyles::EMBER_ORANGE + "; font-size: 10pt; font-weight: bold;");
+        infoLabel->setStyleSheet("color: " + AdobeStyles::ADOBE_BLUE + "; font-size: 10pt; font-weight: bold;");
         changeLayout->addRow("", infoLabel);
     }
     
     m_newEmailEdit = new QLineEdit(this);
     m_newEmailEdit->setPlaceholderText("Enter email address");
-    m_newEmailEdit->setStyleSheet(FirewoodStyles::LINE_EDIT);
+    m_newEmailEdit->setStyleSheet(AdobeStyles::LINE_EDIT);
     changeLayout->addRow(isAdmin ? "Email:" : "New Email:", m_newEmailEdit);
     
     m_newPhoneEdit = new QLineEdit(this);
     m_newPhoneEdit->setPlaceholderText("Enter phone number");
-    m_newPhoneEdit->setStyleSheet(FirewoodStyles::LINE_EDIT);
+    m_newPhoneEdit->setStyleSheet(AdobeStyles::LINE_EDIT);
     changeLayout->addRow(isAdmin ? "Phone:" : "New Phone:", m_newPhoneEdit);
     
     m_newAvailabilityEdit = new QTextEdit(this);
     m_newAvailabilityEdit->setMaximumHeight(60);
     m_newAvailabilityEdit->setPlaceholderText("Enter your availability (e.g., Weekdays 9AM-5PM)");
-    m_newAvailabilityEdit->setStyleSheet(FirewoodStyles::LINE_EDIT);
+    m_newAvailabilityEdit->setStyleSheet(AdobeStyles::LINE_EDIT);
     changeLayout->addRow(isAdmin ? "Availability:" : "New Availability:", m_newAvailabilityEdit);
     
     mainLayout->addWidget(changeBox);
@@ -107,12 +107,12 @@ void MyProfileDialog::setupUI()
     if (isAdmin) {
         m_submitButton = new QPushButton("💾 Save Changes", this);
         m_submitButton->setProperty("class", "primary");
-        m_submitButton->setStyleSheet(FirewoodStyles::PRIMARY_BUTTON);
+        m_submitButton->setStyleSheet(AdobeStyles::PRIMARY_BUTTON);
         connect(m_submitButton, &QPushButton::clicked, this, &MyProfileDialog::saveDirectly);
     } else {
         m_submitButton = new QPushButton("📝 Submit Change Request", this);
         m_submitButton->setProperty("class", "primary");
-        m_submitButton->setStyleSheet(FirewoodStyles::PRIMARY_BUTTON);
+        m_submitButton->setStyleSheet(AdobeStyles::PRIMARY_BUTTON);
         connect(m_submitButton, &QPushButton::clicked, this, &MyProfileDialog::requestChange);
     }
     buttonLayout->addWidget(m_submitButton);
@@ -121,7 +121,7 @@ void MyProfileDialog::setupUI()
     
     auto *closeButton = new QPushButton("❌ Close", this);
     closeButton->setProperty("class", "cancel");
-    closeButton->setStyleSheet(FirewoodStyles::CANCEL_BUTTON);
+    closeButton->setStyleSheet(AdobeStyles::CANCEL_BUTTON);
     connect(closeButton, &QPushButton::clicked, this, &QDialog::accept);
     buttonLayout->addWidget(closeButton);
     

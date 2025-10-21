@@ -33,17 +33,337 @@ DashboardWidget::DashboardWidget(const UserInfo &userInfo, QWidget *parent)
 
 void DashboardWidget::setupUI()
 {
+    // Set modern dark background
+    setStyleSheet("QWidget { background-color: " + AdobeStyles::DARK_BG + "; }");
+    
     auto *mainLayout = new QVBoxLayout(this);
-    mainLayout->setSpacing(15);
-    mainLayout->setContentsMargins(15, 15, 15, 15);
+    mainLayout->setSpacing(20);
+    mainLayout->setContentsMargins(24, 24, 24, 24);
+    
+    // Create modern header
+    createModernHeader();
     
     // Show statistics for leads and admins only
     if (Authorization::isAdmin(m_userInfo.role) || Authorization::isLead(m_userInfo.role)) {
         createStatisticsSection();
     }
     
-    createTopSection();
-    createBottomSection();
+    // Create modern dashboard grid
+    createModernDashboard();
+}
+
+void DashboardWidget::createModernHeader()
+{
+    auto *headerWidget = new QWidget(this);
+    headerWidget->setStyleSheet(
+        "QWidget { "
+        "   background: " + AdobeStyles::CARD_BG + "; "
+        "   border-radius: 12px; "
+        "   padding: 20px; "
+        "}"
+    );
+    
+    auto *headerLayout = new QHBoxLayout(headerWidget);
+    headerLayout->setSpacing(20);
+    
+    // User info section
+    auto *userInfoWidget = new QWidget();
+    auto *userInfoLayout = new QVBoxLayout(userInfoWidget);
+    userInfoLayout->setSpacing(8);
+    
+    auto *welcomeLabel = new QLabel("Welcome back, " + m_userInfo.fullName, this);
+    welcomeLabel->setStyleSheet(
+        "QLabel { "
+        "   font-size: 24px; "
+        "   font-weight: 700; "
+        "   color: " + AdobeStyles::TEXT_PRIMARY + "; "
+        "   margin-bottom: 4px; "
+        "}"
+    );
+    userInfoLayout->addWidget(welcomeLabel);
+    
+    auto *roleLabel = new QLabel(m_userInfo.role + " • " + QDate::currentDate().toString("dddd, MMMM d, yyyy"), this);
+    roleLabel->setStyleSheet(
+        "QLabel { "
+        "   font-size: 14px; "
+        "   color: " + AdobeStyles::TEXT_SECONDARY + "; "
+        "}"
+    );
+    userInfoLayout->addWidget(roleLabel);
+    
+    headerLayout->addWidget(userInfoWidget);
+    headerLayout->addStretch();
+    
+    // Quick stats for all users
+    auto *quickStatsWidget = new QWidget();
+    auto *quickStatsLayout = new QHBoxLayout(quickStatsWidget);
+    quickStatsLayout->setSpacing(16);
+    
+    // Today's date card
+    auto *dateCard = createQuickStatCard(AdobeStyles::ICON_CALENDAR, "Today", QDate::currentDate().toString("MMM d"));
+    quickStatsLayout->addWidget(dateCard);
+    
+    // Time card
+    auto *timeCard = createQuickStatCard("🕐", "Time", QTime::currentTime().toString("h:mm AP"));
+    quickStatsLayout->addWidget(timeCard);
+    
+    headerLayout->addWidget(quickStatsWidget);
+    
+    layout()->addWidget(headerWidget);
+}
+
+QWidget* DashboardWidget::createQuickStatCard(const QString &icon, const QString &label, const QString &value)
+{
+    auto *card = new QWidget();
+    card->setStyleSheet(
+        "QWidget { "
+        "   background: " + AdobeStyles::SURFACE_BG + "; "
+        "   border-radius: 8px; "
+        "   padding: 12px 16px; "
+        "   border: 1px solid " + AdobeStyles::BORDER_GRAY + "; "
+        "}"
+    );
+    
+    auto *layout = new QVBoxLayout(card);
+    layout->setSpacing(4);
+    
+    auto *iconLabel = new QLabel(icon, this);
+    iconLabel->setStyleSheet("font-size: 16px;");
+    iconLabel->setAlignment(Qt::AlignCenter);
+    layout->addWidget(iconLabel);
+    
+    auto *valueLabel = new QLabel(value, this);
+    valueLabel->setStyleSheet(
+        "QLabel { "
+        "   font-size: 16px; "
+        "   font-weight: 600; "
+        "   color: " + AdobeStyles::TEXT_PRIMARY + "; "
+        "}"
+    );
+    valueLabel->setAlignment(Qt::AlignCenter);
+    layout->addWidget(valueLabel);
+    
+    auto *labelLabel = new QLabel(label, this);
+    labelLabel->setStyleSheet(
+        "QLabel { "
+        "   font-size: 12px; "
+        "   color: " + AdobeStyles::TEXT_SECONDARY + "; "
+        "}"
+    );
+    labelLabel->setAlignment(Qt::AlignCenter);
+    layout->addWidget(labelLabel);
+    
+    return card;
+}
+
+void DashboardWidget::createModernDashboard()
+{
+    auto *dashboardWidget = new QWidget();
+    auto *dashboardLayout = new QGridLayout(dashboardWidget);
+    dashboardLayout->setSpacing(20);
+    dashboardLayout->setContentsMargins(0, 0, 0, 0);
+    
+    // Create modern cards in a grid layout
+    // Row 1: Work Orders and Calendar
+    auto *workOrdersCard = createModernCard("📋 Work Orders", "Upcoming deliveries and tasks", createWorkOrdersContent());
+    dashboardLayout->addWidget(workOrdersCard, 0, 0);
+    
+    auto *calendarCard = createModernCard("📅 Schedule", "Today's schedule and upcoming events", createCalendarContent());
+    dashboardLayout->addWidget(calendarCard, 0, 1);
+    
+    // Row 2: Inventory and Alerts
+    auto *inventoryCard = createModernCard("📦 Inventory", "Current stock levels", createInventoryContent());
+    dashboardLayout->addWidget(inventoryCard, 1, 0);
+    
+    auto *alertsCard = createModernCard("⚠️ Alerts", "Important notifications", createAlertsContent());
+    dashboardLayout->addWidget(alertsCard, 1, 1);
+    
+    layout()->addWidget(dashboardWidget);
+}
+
+QWidget* DashboardWidget::createModernCard(const QString &title, const QString &subtitle, QWidget *content)
+{
+    auto *card = new QWidget();
+    card->setStyleSheet(
+        "QWidget { "
+        "   background: " + AdobeStyles::CARD_BG + "; "
+        "   border-radius: 12px; "
+        "   border: 1px solid " + AdobeStyles::BORDER_GRAY + "; "
+        "}"
+    );
+    
+    auto *layout = new QVBoxLayout(card);
+    layout->setSpacing(16);
+    layout->setContentsMargins(20, 20, 20, 20);
+    
+    // Header
+    auto *headerWidget = new QWidget();
+    auto *headerLayout = new QVBoxLayout(headerWidget);
+    headerLayout->setSpacing(4);
+    
+    auto *titleLabel = new QLabel(title, this);
+    titleLabel->setStyleSheet(
+        "QLabel { "
+        "   font-size: 18px; "
+        "   font-weight: 600; "
+        "   color: " + AdobeStyles::TEXT_PRIMARY + "; "
+        "}"
+    );
+    headerLayout->addWidget(titleLabel);
+    
+    auto *subtitleLabel = new QLabel(subtitle, this);
+    subtitleLabel->setStyleSheet(
+        "QLabel { "
+        "   font-size: 14px; "
+        "   color: " + AdobeStyles::TEXT_SECONDARY + "; "
+        "}"
+    );
+    headerLayout->addWidget(subtitleLabel);
+    
+    layout->addWidget(headerWidget);
+    layout->addWidget(content);
+    
+    return card;
+}
+
+QWidget* DashboardWidget::createWorkOrdersContent()
+{
+    auto *content = new QWidget();
+    auto *layout = new QVBoxLayout(content);
+    layout->setSpacing(12);
+    
+    // Create a modern table for work orders
+    m_upcomingOrdersTable = new QTableWidget(this);
+    m_upcomingOrdersTable->setColumnCount(3);
+    m_upcomingOrdersTable->setHorizontalHeaderLabels({"Date", "Client", "Status"});
+    m_upcomingOrdersTable->horizontalHeader()->setStretchLastSection(true);
+    m_upcomingOrdersTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    m_upcomingOrdersTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    m_upcomingOrdersTable->setAlternatingRowColors(true);
+    m_upcomingOrdersTable->verticalHeader()->setVisible(false);
+    m_upcomingOrdersTable->setStyleSheet(AdobeStyles::TABLE_VIEW);
+    m_upcomingOrdersTable->setShowGrid(false);
+    m_upcomingOrdersTable->setMaximumHeight(200);
+    
+    layout->addWidget(m_upcomingOrdersTable);
+    
+    return content;
+}
+
+QWidget* DashboardWidget::createCalendarContent()
+{
+    auto *content = new QWidget();
+    auto *layout = new QVBoxLayout(content);
+    layout->setSpacing(12);
+    
+    // Create a modern calendar widget
+    m_twoWeekCalendar = new QCalendarWidget(this);
+    m_twoWeekCalendar->setStyleSheet(
+        "QCalendarWidget { "
+        "   background: " + AdobeStyles::SURFACE_BG + "; "
+        "   border: 1px solid " + AdobeStyles::BORDER_GRAY + "; "
+        "   border-radius: 8px; "
+        "   color: " + AdobeStyles::TEXT_PRIMARY + "; "
+        "} "
+        "QCalendarWidget QAbstractItemView { "
+        "   selection-background-color: " + AdobeStyles::ADOBE_BLUE + "; "
+        "   selection-color: white; "
+        "} "
+        "QCalendarWidget QToolButton { "
+        "   background: " + AdobeStyles::ADOBE_BLUE + "; "
+        "   color: white; "
+        "   border-radius: 4px; "
+        "   padding: 4px; "
+        "} "
+        "QCalendarWidget QToolButton:hover { "
+        "   background: " + AdobeStyles::ADOBE_BLUE_LIGHT + "; "
+        "}"
+    );
+    m_twoWeekCalendar->setMaximumHeight(200);
+    
+    layout->addWidget(m_twoWeekCalendar);
+    
+    return content;
+}
+
+QWidget* DashboardWidget::createInventoryContent()
+{
+    auto *content = new QWidget();
+    auto *layout = new QVBoxLayout(content);
+    layout->setSpacing(12);
+    
+    // Create modern inventory display
+    auto *inventoryGrid = new QGridLayout();
+    inventoryGrid->setSpacing(12);
+    
+    // Wood section
+    auto *woodLabel = new QLabel("🪵 Wood", this);
+    woodLabel->setStyleSheet("font-weight: 600; color: " + AdobeStyles::TEXT_PRIMARY + ";");
+    inventoryGrid->addWidget(woodLabel, 0, 0);
+    
+    m_splitWoodLabel = new QLabel("Loading...", this);
+    m_splitWoodLabel->setStyleSheet("color: " + AdobeStyles::SUCCESS_GREEN + "; font-weight: 600;");
+    inventoryGrid->addWidget(m_splitWoodLabel, 0, 1);
+    
+    // Gas section
+    auto *gasLabel = new QLabel("⛽ Gas", this);
+    gasLabel->setStyleSheet("font-weight: 600; color: " + AdobeStyles::TEXT_PRIMARY + ";");
+    inventoryGrid->addWidget(gasLabel, 1, 0);
+    
+    m_regularGasLabel = new QLabel("Loading...", this);
+    m_regularGasLabel->setStyleSheet("color: " + AdobeStyles::SUCCESS_GREEN + "; font-weight: 600;");
+    inventoryGrid->addWidget(m_regularGasLabel, 1, 1);
+    
+    // Equipment section
+    auto *equipmentLabel = new QLabel("🔧 Equipment", this);
+    equipmentLabel->setStyleSheet("font-weight: 600; color: " + AdobeStyles::TEXT_PRIMARY + ";");
+    inventoryGrid->addWidget(equipmentLabel, 2, 0);
+    
+    m_sawsLabel = new QLabel("Loading...", this);
+    m_sawsLabel->setStyleSheet("color: " + AdobeStyles::SUCCESS_GREEN + "; font-weight: 600;");
+    inventoryGrid->addWidget(m_sawsLabel, 2, 1);
+    
+    layout->addLayout(inventoryGrid);
+    
+    return content;
+}
+
+QWidget* DashboardWidget::createAlertsContent()
+{
+    auto *content = new QWidget();
+    auto *layout = new QVBoxLayout(content);
+    layout->setSpacing(12);
+    
+    // Create alerts display
+    m_emergenciesText = new QTextEdit(this);
+    m_emergenciesText->setReadOnly(true);
+    m_emergenciesText->setMaximumHeight(80);
+    m_emergenciesText->setStyleSheet(
+        "QTextEdit { "
+        "   background: " + AdobeStyles::SURFACE_BG + "; "
+        "   border: 1px solid " + AdobeStyles::BORDER_GRAY + "; "
+        "   border-radius: 8px; "
+        "   padding: 12px; "
+        "   color: " + AdobeStyles::TEXT_PRIMARY + "; "
+        "}"
+    );
+    layout->addWidget(m_emergenciesText);
+    
+    m_lowInventoryText = new QTextEdit(this);
+    m_lowInventoryText->setReadOnly(true);
+    m_lowInventoryText->setMaximumHeight(80);
+    m_lowInventoryText->setStyleSheet(
+        "QTextEdit { "
+        "   background: " + AdobeStyles::SURFACE_BG + "; "
+        "   border: 1px solid " + AdobeStyles::BORDER_GRAY + "; "
+        "   border-radius: 8px; "
+        "   padding: 12px; "
+        "   color: " + AdobeStyles::TEXT_PRIMARY + "; "
+        "}"
+    );
+    layout->addWidget(m_lowInventoryText);
+    
+    return content;
 }
 
 void DashboardWidget::createStatisticsSection()
@@ -52,18 +372,18 @@ void DashboardWidget::createStatisticsSection()
     auto *statsBox = createGroupBox("📊 Organization Statistics Dashboard");
     statsBox->setStyleSheet(
         "QGroupBox { "
-        "   border: 3px solid " + FirewoodStyles::EMBER_ORANGE + "; "
+        "   border: 3px solid " + AdobeStyles::ADOBE_BLUE + "; "
         "   border-radius: 15px; "
         "   margin-top: 18px; "
         "   padding: 15px 20px 15px 20px; "
         "   font-weight: bold; "
-        "   background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #fff9f5, stop:1 #ffede0); "
+        "   background: " + AdobeStyles::CARD_BG + "; "
         "} "
         "QGroupBox::title { "
         "   subcontrol-origin: margin; "
         "   subcontrol-position: top center; "
         "   padding: 8px 20px; "
-        "   background: " + FirewoodStyles::GRADIENT_EMBER_TO_FLAME + "; "
+        "   background: " + AdobeStyles::GRADIENT_PRIMARY + "; "
         "   color: white; "
         "   border-radius: 8px; "
         "   font-size: 13pt; "
@@ -80,17 +400,17 @@ void DashboardWidget::createStatisticsSection()
     statsLayout->setColumnStretch(3, 1);  // Calendar (fixed width)
     
         // === HOUSEHOLD COUNT ===
-    auto *householdsLabel = new QLabel("<b style='font-size: 13pt; color: " + FirewoodStyles::EMBER_ORANGE + ";'>👥 HOUSEHOLDS SERVED</b>", this);
+    auto *householdsLabel = new QLabel("<b style='font-size: 13pt; color: " + AdobeStyles::ADOBE_BLUE + ";'>👥 HOUSEHOLDS SERVED</b>", this);
     statsLayout->addWidget(householdsLabel, 0, 0);
     
     m_totalHouseholdsLabel = new QLabel("Loading...", this);
-    m_totalHouseholdsLabel->setStyleSheet("font-size: 20pt; font-weight: bold; color: " + FirewoodStyles::FOREST_GREEN + "; padding: 10px 5px 15px 5px;");
+    m_totalHouseholdsLabel->setStyleSheet("font-size: 20pt; font-weight: bold; color: " + AdobeStyles::SUCCESS_GREEN + "; padding: 10px 5px 15px 5px;");
     m_totalHouseholdsLabel->setAlignment(Qt::AlignCenter);
     m_totalHouseholdsLabel->setMinimumHeight(60);
     statsLayout->addWidget(m_totalHouseholdsLabel, 1, 0);
     
     // === WOOD DELIVERED ===
-    auto *woodLabel = new QLabel("<b style='font-size: 13pt; color: " + FirewoodStyles::EMBER_ORANGE + ";'>🪵 WOOD DELIVERED</b>", this);
+    auto *woodLabel = new QLabel("<b style='font-size: 13pt; color: " + AdobeStyles::ADOBE_BLUE + ";'>🪵 WOOD DELIVERED</b>", this);
     woodLabel->setWordWrap(false);
     woodLabel->setMinimumWidth(150);
     statsLayout->addWidget(woodLabel, 0, 1);
@@ -114,14 +434,14 @@ void DashboardWidget::createStatisticsSection()
     woodStatsLayout->addWidget(m_woodDeliveredYearLabel);
     
     m_woodDeliveredAllTimeLabel = new QLabel("All Time: <b>0.0 cords</b>", this);
-    m_woodDeliveredAllTimeLabel->setStyleSheet("font-size: 13pt; font-weight: bold; color: " + FirewoodStyles::SUCCESS_GREEN + "; padding: 3px;");
+    m_woodDeliveredAllTimeLabel->setStyleSheet("font-size: 13pt; font-weight: bold; color: " + AdobeStyles::SUCCESS_GREEN + "; padding: 3px;");
     m_woodDeliveredAllTimeLabel->setWordWrap(false);
     woodStatsLayout->addWidget(m_woodDeliveredAllTimeLabel);
     
     statsLayout->addLayout(woodStatsLayout, 1, 1);
     
     // === EXPENSES ===
-    auto *expensesLabel = new QLabel("<b style='font-size: 13pt; color: " + FirewoodStyles::EMBER_ORANGE + ";'>💰 EXPENSES</b>", this);
+    auto *expensesLabel = new QLabel("<b style='font-size: 13pt; color: " + AdobeStyles::ADOBE_BLUE + ";'>💰 EXPENSES</b>", this);
     expensesLabel->setWordWrap(false);
     expensesLabel->setMinimumWidth(120);
     statsLayout->addWidget(expensesLabel, 0, 2);
@@ -145,7 +465,7 @@ void DashboardWidget::createStatisticsSection()
     expenseStatsLayout->addWidget(m_expenseYearLabel);
     
     m_expenseAllTimeLabel = new QLabel("All Time: <b>$0.00</b>", this);
-    m_expenseAllTimeLabel->setStyleSheet("font-size: 13pt; font-weight: bold; color: " + FirewoodStyles::WARNING_AMBER + "; padding: 3px;");
+    m_expenseAllTimeLabel->setStyleSheet("font-size: 13pt; font-weight: bold; color: " + AdobeStyles::WARNING_ORANGE + "; padding: 3px;");
     m_expenseAllTimeLabel->setWordWrap(false);
     expenseStatsLayout->addWidget(m_expenseAllTimeLabel);
     
@@ -164,26 +484,26 @@ void DashboardWidget::createStatisticsSection()
     m_monthlyCalendar->setStyleSheet(
         "QCalendarWidget { "
         "  background-color: white; "
-        "  border: 2px solid " + FirewoodStyles::WARM_EARTH + "; "
+        "  border: 2px solid " + AdobeStyles::BORDER_GRAY + "; "
         "  border-radius: 6px; "
         "  padding: 3px; "
         "} "
         "QCalendarWidget QWidget { "
-        "  alternate-background-color: " + FirewoodStyles::CREAM + "; "
+        "  alternate-background-color: " + AdobeStyles::SURFACE_BG + "; "
         "  background-color: white; "
         "} "
         "QCalendarWidget QAbstractItemView { "
-        "  selection-background-color: " + FirewoodStyles::EMBER_ORANGE + "; "
+        "  selection-background-color: " + AdobeStyles::ADOBE_BLUE + "; "
         "  selection-color: white; "
         "  font-size: 9pt; "
         "  border-radius: 3px; "
         "} "
         "QCalendarWidget QAbstractItemView:enabled { "
-        "  color: " + FirewoodStyles::CHARCOAL + "; "
+        "  color: " + AdobeStyles::TEXT_PRIMARY + "; "
         "} "
         "QCalendarWidget QToolButton { "
         "  color: white; "
-        "  background-color: " + FirewoodStyles::FOREST_GREEN + "; "
+        "  background-color: " + AdobeStyles::ADOBE_BLUE + "; "
         "  border-radius: 3px; "
         "  padding: 3px; "
         "  font-weight: bold; "
@@ -192,22 +512,22 @@ void DashboardWidget::createStatisticsSection()
         "  margin: 1px; "
         "} "
         "QCalendarWidget QToolButton:hover { "
-        "  background-color: " + FirewoodStyles::EMBER_ORANGE + "; "
+        "  background-color: " + AdobeStyles::ADOBE_BLUE_LIGHT + "; "
         "  color: white; "
         "} "
         "QCalendarWidget QToolButton:pressed { "
-        "  background-color: " + FirewoodStyles::FLAME_RED + "; "
+        "  background-color: " + AdobeStyles::ADOBE_BLUE_DARK + "; "
         "} "
         "QCalendarWidget QMenu { "
         "  background-color: white; "
-        "  border: 1px solid " + FirewoodStyles::WARM_EARTH + "; "
+        "  border: 1px solid " + AdobeStyles::BORDER_GRAY + "; "
         "} "
         "QCalendarWidget QSpinBox { "
         "  font-size: 9pt; "
         "  padding: 2px; "
         "} "
         "QCalendarWidget QWidget#qt_calendar_navigationbar { "
-        "  background-color: " + FirewoodStyles::FOREST_GREEN + "; "
+        "  background-color: " + AdobeStyles::ADOBE_BLUE + "; "
         "  border-radius: 4px; "
         "  padding: 1px; "
         "} "
@@ -290,7 +610,7 @@ void DashboardWidget::createBottomSection()
     
     // ==================== LEFT: Upcoming Work Orders List ====================
     auto *ordersBox = createGroupBox("📋 Upcoming Work Orders");
-    ordersBox->setStyleSheet(FirewoodStyles::GROUP_BOX_FIRE);
+    ordersBox->setStyleSheet(AdobeStyles::GROUP_BOX_FIRE);
     auto *ordersLayout = new QVBoxLayout(ordersBox);
     
     // Simple scrollable list
@@ -306,7 +626,7 @@ void DashboardWidget::createBottomSection()
     m_upcomingOrdersTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_upcomingOrdersTable->setAlternatingRowColors(true);
     m_upcomingOrdersTable->verticalHeader()->setVisible(false);
-    m_upcomingOrdersTable->setStyleSheet(FirewoodStyles::TABLE_VIEW);
+    m_upcomingOrdersTable->setStyleSheet(AdobeStyles::TABLE_VIEW);
     m_upcomingOrdersTable->setShowGrid(false);
     ordersScroll->setWidget(m_upcomingOrdersTable);
     ordersLayout->addWidget(ordersScroll);
@@ -315,7 +635,7 @@ void DashboardWidget::createBottomSection()
     
     // ==================== CENTER: 2-Week Calendar ====================
     auto *twoWeekBox = createGroupBox("📅 Next 2 Weeks");
-    twoWeekBox->setStyleSheet(FirewoodStyles::GROUP_BOX);
+    twoWeekBox->setStyleSheet(AdobeStyles::GROUP_BOX);
     auto *twoWeekLayout = new QVBoxLayout(twoWeekBox);
     
     // Custom 2-week calendar display
@@ -334,14 +654,14 @@ void DashboardWidget::createBottomSection()
         QDate date = startDate.addDays(i);
         
         // Zebra striping - alternating row colors
-        QString bgColor = (i % 2 == 0) ? "white" : FirewoodStyles::CREAM;
+        QString bgColor = (i % 2 == 0) ? AdobeStyles::CARD_BG : AdobeStyles::SURFACE_BG;
         
         // Day name label
         auto *dayLabel = new QLabel(date.toString("dddd"), this);
         dayLabel->setStyleSheet(
             "font-size: 12pt; "
             "font-weight: bold; "
-            "color: " + FirewoodStyles::FOREST_GREEN + "; "
+            "color: " + AdobeStyles::ADOBE_BLUE + "; "
             "padding: 8px 10px 2px 10px; "
             "background: " + bgColor + ";"
         );
@@ -351,7 +671,7 @@ void DashboardWidget::createBottomSection()
         auto *dateLabel = new QLabel(date.toString("MMMM d, yyyy"), this);
         dateLabel->setStyleSheet(
             "font-size: 10pt; "
-            "color: " + FirewoodStyles::CHARCOAL + "; "
+            "color: " + AdobeStyles::TEXT_PRIMARY + "; "
             "padding: 2px 10px 8px 10px; "
             "background: " + bgColor + ";"
         );
@@ -362,7 +682,7 @@ void DashboardWidget::createBottomSection()
             auto *separator = new QFrame(this);
             separator->setFrameShape(QFrame::HLine);
             separator->setFrameShadow(QFrame::Sunken);
-            separator->setStyleSheet("background-color: " + FirewoodStyles::WARM_EARTH + "; min-height: 1px; max-height: 1px;");
+            separator->setStyleSheet("background-color: " + AdobeStyles::BORDER_GRAY + "; min-height: 1px; max-height: 1px;");
             calendarContentLayout->addWidget(separator);
         }
     }
@@ -375,13 +695,13 @@ void DashboardWidget::createBottomSection()
     
     // ==================== RIGHT: Visual Inventory Display ====================
     auto *inventoryBox = createGroupBox("📦 Inventory At-A-Glance");
-    inventoryBox->setStyleSheet(FirewoodStyles::GROUP_BOX_SUCCESS);
+    inventoryBox->setStyleSheet(AdobeStyles::GROUP_BOX_SUCCESS);
     auto *inventoryLayout = new QVBoxLayout(inventoryBox);
     inventoryLayout->setSpacing(8);
     inventoryLayout->setContentsMargins(15, 18, 15, 15);
     
     // Wood Section
-    auto *woodLabel = new QLabel("<b style='font-size: 9pt; color: " + FirewoodStyles::EMBER_ORANGE + ";'>🪵 WOOD</b>", this);
+    auto *woodLabel = new QLabel("<b style='font-size: 9pt; color: " + AdobeStyles::ADOBE_BLUE + ";'>🪵 WOOD</b>", this);
     inventoryLayout->addWidget(woodLabel);
     inventoryLayout->addSpacing(4);
     
@@ -396,7 +716,7 @@ void DashboardWidget::createBottomSection()
     splitLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
     m_splitWoodLabel = new QLabel("Loading...", this);
     m_splitWoodLabel->setTextFormat(Qt::RichText);
-    m_splitWoodLabel->setStyleSheet("font-size: 9pt; font-weight: bold; color: " + FirewoodStyles::SUCCESS_GREEN + ";");
+    m_splitWoodLabel->setStyleSheet("font-size: 9pt; font-weight: bold; color: " + AdobeStyles::SUCCESS_GREEN + ";");
     m_splitWoodLabel->setMinimumWidth(140);
     m_splitWoodLabel->setWordWrap(true);
     m_splitWoodLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
@@ -411,7 +731,7 @@ void DashboardWidget::createBottomSection()
     unsplitLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
     m_roundsWoodLabel = new QLabel("Loading...", this);
     m_roundsWoodLabel->setTextFormat(Qt::RichText);
-    m_roundsWoodLabel->setStyleSheet("font-size: 9pt; font-weight: bold; color: " + FirewoodStyles::WARNING_AMBER + ";");
+    m_roundsWoodLabel->setStyleSheet("font-size: 9pt; font-weight: bold; color: " + AdobeStyles::WARNING_ORANGE + ";");
     m_roundsWoodLabel->setMinimumWidth(140);
     m_roundsWoodLabel->setWordWrap(false);
     m_roundsWoodLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
@@ -429,7 +749,7 @@ void DashboardWidget::createBottomSection()
     inventoryLayout->addSpacing(8);
     
     // Gas Section
-    auto *gasLabel = new QLabel("<b style='font-size: 9pt; color: " + FirewoodStyles::EMBER_ORANGE + ";'>⛽ GAS</b>", this);
+    auto *gasLabel = new QLabel("<b style='font-size: 9pt; color: " + AdobeStyles::ADOBE_BLUE + ";'>⛽ GAS</b>", this);
     inventoryLayout->addWidget(gasLabel);
     inventoryLayout->addSpacing(4);
     
@@ -442,7 +762,7 @@ void DashboardWidget::createBottomSection()
     regularGasLabel->setMinimumWidth(65);
     regularGasLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
     m_regularGasLabel = new QLabel("Loading...", this);
-    m_regularGasLabel->setStyleSheet("font-size: 9pt; font-weight: bold; color: " + FirewoodStyles::SUCCESS_GREEN + ";");
+    m_regularGasLabel->setStyleSheet("font-size: 9pt; font-weight: bold; color: " + AdobeStyles::SUCCESS_GREEN + ";");
     m_regularGasLabel->setMinimumWidth(100);
     m_regularGasLabel->setWordWrap(false);
     m_regularGasLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
@@ -455,7 +775,7 @@ void DashboardWidget::createBottomSection()
     mixedGasLabel->setMinimumWidth(65);
     mixedGasLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
     m_mixedGasLabel = new QLabel("Loading...", this);
-    m_mixedGasLabel->setStyleSheet("font-size: 9pt; font-weight: bold; color: " + FirewoodStyles::WARNING_AMBER + ";");
+    m_mixedGasLabel->setStyleSheet("font-size: 9pt; font-weight: bold; color: " + AdobeStyles::WARNING_ORANGE + ";");
     m_mixedGasLabel->setMinimumWidth(100);
     m_mixedGasLabel->setWordWrap(false);
     m_mixedGasLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
@@ -473,12 +793,12 @@ void DashboardWidget::createBottomSection()
     inventoryLayout->addSpacing(8);
     
     // Saws Section
-    auto *sawsLabel = new QLabel("<b style='font-size: 9pt; color: " + FirewoodStyles::EMBER_ORANGE + ";'>🪚 SAWS</b>", this);
+    auto *sawsLabel = new QLabel("<b style='font-size: 9pt; color: " + AdobeStyles::ADOBE_BLUE + ";'>🪚 SAWS</b>", this);
     inventoryLayout->addWidget(sawsLabel);
     inventoryLayout->addSpacing(4);
     
     m_sawsLabel = new QLabel("Loading...", this);
-    m_sawsLabel->setStyleSheet("font-size: 9pt; font-weight: bold; color: " + FirewoodStyles::SUCCESS_GREEN + "; padding-left: 10px;");
+    m_sawsLabel->setStyleSheet("font-size: 9pt; font-weight: bold; color: " + AdobeStyles::SUCCESS_GREEN + "; padding-left: 10px;");
     m_sawsLabel->setMinimumWidth(140);
     m_sawsLabel->setWordWrap(false);
     m_sawsLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
@@ -499,7 +819,7 @@ QFrame* DashboardWidget::createSeparator()
     auto *sep = new QFrame(this);
     sep->setFrameShape(QFrame::HLine);
     sep->setFrameShadow(QFrame::Sunken);
-    sep->setStyleSheet("background-color: " + FirewoodStyles::ASH_GRAY + "; min-height: 1px; max-height: 1px; margin: 5px 0;");
+    sep->setStyleSheet("background-color: " + AdobeStyles::BORDER_GRAY + "; min-height: 1px; max-height: 1px; margin: 5px 0;");
     return sep;
 }
 
@@ -841,10 +1161,10 @@ void DashboardWidget::loadInventoryAtAGlance()
             QString("<span style='color:%1'>%2 cords</span> <span style='color:%3'>(true)</span>"
                     " &nbsp; | &nbsp; "
                     "<span style='color:%4'>%5</span> <span style='color:%3'>tentative</span>")
-                .arg(FirewoodStyles::SUCCESS_GREEN)
+                .arg(AdobeStyles::SUCCESS_GREEN)
                 .arg(splitCords, 0, 'f', 1)
-                .arg(FirewoodStyles::CHARCOAL)
-                .arg(FirewoodStyles::FOREST_GREEN)
+                .arg(AdobeStyles::TEXT_SECONDARY)
+                .arg(AdobeStyles::ADOBE_BLUE)
                 .arg(tentativeSplit, 0, 'f', 1));
     }
     if (m_roundsWoodLabel) {

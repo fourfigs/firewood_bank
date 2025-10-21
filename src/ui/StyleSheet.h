@@ -2,466 +2,627 @@
 
 #include <QString>
 
-namespace FirewoodStyles {
+namespace AdobeStyles {
 
-// ==================== COLOR PALETTE ====================
+// ==================== NM-ERA INSPIRED WARM COLOR PALETTE ====================
 
-// Primary Colors (Nature + Forest)
-const QString FOREST_GREEN = "#2d5016";
-const QString DEEP_PINE = "#1a2f0c";
-const QString WARM_EARTH = "#8b6f47";
-const QString WOOD_BROWN = "#5c4033";
+// Primary NM-ERA Colors (Warm & Earthy)
+const QString NMERA_PRIMARY = "#D2691E";        // Warm Orange (Firewood)
+const QString NMERA_PRIMARY_DARK = "#B8860B";   // Dark Goldenrod
+const QString NMERA_PRIMARY_LIGHT = "#F4A460";  // Sandy Brown
+const QString NMERA_SECONDARY = "#8B4513";      // Saddle Brown
+const QString NMERA_ACCENT = "#CD853F";         // Peru (Warm Brown)
 
-// Fiery Accents
-const QString EMBER_ORANGE = "#d97732";
-const QString FLAME_RED = "#c1421e";
-const QString GOLDEN_GLOW = "#f4a300";
+// Adobe-inspired with NM-ERA warmth
+const QString ADOBE_BLUE = "#1473E6";
+const QString ADOBE_BLUE_DARK = "#0F5BB8";
+const QString ADOBE_BLUE_LIGHT = "#4A90E2";
 
-// Neutral Tones
-const QString SMOKE_WHITE = "#f8f9fa";
-const QString ASH_GRAY = "#6b7280";
-const QString CHARCOAL = "#1f2937";
-const QString CREAM = "#fef6e4";
+// Warm Background Palette
+const QString DARK_BG = "#1A1A1A";              // Slightly warmer dark
+const QString CARD_BG = "#2D2B28";              // Warm dark gray
+const QString SURFACE_BG = "#3A3630";           // Warm surface
+const QString BORDER_GRAY = "#4A453F";          // Warm border
+const QString TEXT_PRIMARY = "#F5F5DC";         // Warm white (Beige)
+const QString TEXT_SECONDARY = "#D2B48C";       // Tan
+const QString TEXT_MUTED = "#A0A0A0";           // Muted gray
 
-// Status Colors
-const QString SUCCESS_GREEN = "#28a745";
-const QString WARNING_AMBER = "#ffc107";
-const QString INFO_BLUE = "#0078d4";
-const QString DANGER_RED = "#dc3545";
+// Warm Accent Colors
+const QString SUCCESS_GREEN = "#228B22";        // Forest Green
+const QString WARNING_ORANGE = "#FF8C00";       // Dark Orange
+const QString ERROR_RED = "#DC143C";            // Crimson
+const QString INFO_CYAN = "#20B2AA";            // Light Sea Green
+const QString FIRE_ORANGE = "#FF4500";          // Orange Red (Fire)
+const QString WOOD_BROWN = "#8B4513";           // Saddle Brown
 
-// ==================== GRADIENTS ====================
+// Interactive States
+const QString HOVER_BG = "#4A453F";
+const QString ACTIVE_BG = "#5A554F";
+const QString SELECTED_BG = NMERA_PRIMARY;
 
-// Fiery gradient for headers and important elements
-const QString GRADIENT_EMBER_TO_FLAME = 
-    "qlineargradient(x1:0, y1:0, x2:1, y2:0, "
-    "stop:0 #d97732, stop:0.3 #c1421e, stop:0.7 #c1421e, stop:1 #d97732)";
+// ==================== FIREWOOD-THEMED ICONS ====================
 
-// Forest gradient for toolbars and navigation
-const QString GRADIENT_FOREST = 
+// Firewood Bank Icons (Unicode + CSS)
+const QString ICON_FIREWOOD = "🪵";
+const QString ICON_FIRE = "🔥";
+const QString ICON_TREE = "🌲";
+const QString ICON_HOUSE = "🏠";
+const QString ICON_TRUCK = "🚚";
+const QString ICON_MONEY = "💰";
+const QString ICON_USERS = "👥";
+const QString ICON_INVENTORY = "📦";
+const QString ICON_ORDERS = "📋";
+const QString ICON_CALENDAR = "📅";
+const QString ICON_CHART = "📊";
+const QString ICON_SETTINGS = "⚙️";
+const QString ICON_LOGOUT = "🚪";
+const QString ICON_ADD = "➕";
+const QString ICON_EDIT = "✏️";
+const QString ICON_DELETE = "🗑️";
+const QString ICON_SAVE = "💾";
+const QString ICON_REFRESH = "🔄";
+const QString ICON_SEARCH = "🔍";
+const QString ICON_WARNING = "⚠️";
+const QString ICON_SUCCESS = "✅";
+const QString ICON_ERROR = "❌";
+const QString ICON_INFO = "ℹ️";
+
+// ==================== WARM GRADIENTS ====================
+
+// NM-ERA Primary Gradient (Firewood Orange)
+const QString GRADIENT_PRIMARY = 
     "qlineargradient(x1:0, y1:0, x2:0, y2:1, "
-    "stop:0 #2d5016, stop:1 #1a2f0c)";
+    "stop:0 " + NMERA_PRIMARY + ", stop:1 " + NMERA_PRIMARY_DARK + ")";
 
-// Button gradient for primary actions (enhanced)
-const QString GRADIENT_PRIMARY_BUTTON = 
+// Warm Card Gradient
+const QString GRADIENT_CARD = 
     "qlineargradient(x1:0, y1:0, x2:0, y2:1, "
-    "stop:0 #e88842, stop:0.5 #d97732, stop:1 #c1421e)";
+    "stop:0 " + CARD_BG + ", stop:1 " + SURFACE_BG + ")";
 
-// Button gradient for hover
-const QString GRADIENT_PRIMARY_BUTTON_HOVER = 
+// Hover Gradient (Warm)
+const QString GRADIENT_HOVER = 
     "qlineargradient(x1:0, y1:0, x2:0, y2:1, "
-    "stop:0 #f59952, stop:0.5 #e88842, stop:1 #d97732)";
+    "stop:0 " + HOVER_BG + ", stop:1 " + ACTIVE_BG + ")";
 
-// Active tab gradient
-const QString GRADIENT_ACTIVE_TAB = 
-    "qlineargradient(x1:0, y1:0, x2:0, y2:1, "
-    "stop:0 #d97732, stop:1 #f4a300)";
-
-// Success gradient
+// Success Gradient (Forest Green)
 const QString GRADIENT_SUCCESS = 
-    "qlineargradient(x1:0, y1:0, x2:1, y2:0, "
-    "stop:0 #28a745, stop:1 #20c997)";
+    "qlineargradient(x1:0, y1:0, x2:0, y2:1, "
+    "stop:0 " + SUCCESS_GREEN + ", stop:1 #1E7B1E)";
 
-// Warning gradient  
+// Warning Gradient (Fire Orange)
 const QString GRADIENT_WARNING = 
-    "qlineargradient(x1:0, y1:0, x2:1, y2:0, "
-    "stop:0 #ffc107, stop:1 #ff9800)";
+    "qlineargradient(x1:0, y1:0, x2:0, y2:1, "
+    "stop:0 " + WARNING_ORANGE + ", stop:1 " + FIRE_ORANGE + ")";
 
-// ==================== COMPONENT STYLES ====================
+// Error Gradient (Crimson)
+const QString GRADIENT_ERROR = 
+    "qlineargradient(x1:0, y1:0, x2:0, y2:1, "
+    "stop:0 " + ERROR_RED + ", stop:1 #B22222)";
 
-// Main Window Background
+// Fire Gradient (Special for firewood theme)
+const QString GRADIENT_FIRE = 
+    "qlineargradient(x1:0, y1:0, x2:0, y2:1, "
+    "stop:0 " + FIRE_ORANGE + ", stop:1 " + NMERA_PRIMARY + ")";
+
+// Wood Gradient (Wood brown theme)
+const QString GRADIENT_WOOD = 
+    "qlineargradient(x1:0, y1:0, x2:0, y2:1, "
+    "stop:0 " + WOOD_BROWN + ", stop:1 " + NMERA_SECONDARY + ")";
+
+// ==================== MODERN COMPONENT STYLES ====================
+
+// Main Window - Dark Adobe Theme
 const QString MAIN_WINDOW = 
     "QMainWindow { "
-    "   background-color: " + SMOKE_WHITE + "; "
+    "   background-color: " + DARK_BG + "; "
+    "   color: " + TEXT_PRIMARY + "; "
     "} "
     "QMainWindow::separator { "
-    "   background: " + ASH_GRAY + "; "
+    "   background: " + BORDER_GRAY + "; "
     "   width: 1px; "
     "   height: 1px; "
     "}";
 
-// Toolbar with forest gradient and smooth interactions
+// Modern Toolbar
 const QString TOOLBAR = 
     "QToolBar { "
-    "   background: " + GRADIENT_FOREST + "; "
+    "   background: " + CARD_BG + "; "
     "   border: none; "
-    "   border-bottom: 3px solid " + EMBER_ORANGE + "; "
-    "   padding: 8px; "
-    "   spacing: 10px; "
+    "   border-bottom: 1px solid " + BORDER_GRAY + "; "
+    "   padding: 12px 16px; "
+    "   spacing: 8px; "
     "} "
     "QToolBar::separator { "
-    "   background: " + WARM_EARTH + "; "
-    "   width: 3px; "
-    "   margin: 8px 6px; "
+    "   background: " + BORDER_GRAY + "; "
+    "   width: 1px; "
+    "   margin: 8px 4px; "
     "} "
     "QToolButton { "
     "   background: transparent; "
-    "   border: 2px solid transparent; "
-    "   color: white; "
-    "   padding: 8px 16px; "
+    "   border: none; "
+    "   color: " + TEXT_SECONDARY + "; "
+    "   padding: 8px 12px; "
     "   border-radius: 6px; "
-    "   font-size: 11pt; "
+    "   font-size: 13px; "
     "   font-weight: 500; "
+    "   min-width: 32px; "
+    "   min-height: 32px; "
     "} "
     "QToolButton:hover { "
-    "   background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 " + EMBER_ORANGE + ", stop:1 " + FLAME_RED + "); "
-    "   border: 2px solid " + GOLDEN_GLOW + "; "
-    "   color: white; "
-    "   font-weight: bold; "
+    "   background: " + HOVER_BG + "; "
+    "   color: " + TEXT_PRIMARY + "; "
     "} "
     "QToolButton:pressed { "
-    "   background: " + FLAME_RED + "; "
-    "   border: 2px solid " + FLAME_RED + "; "
-    "   padding: 9px 16px 7px 16px; "
+    "   background: " + ACTIVE_BG + "; "
+    "   color: " + ADOBE_BLUE + "; "
+    "} "
+    "QToolButton:checked { "
+    "   background: " + SELECTED_BG + "; "
+    "   color: white; "
     "}";
 
-// Primary Button (fiery gradient with smooth animations)
+// Modern Primary Button (NM-ERA Firewood Theme)
 const QString PRIMARY_BUTTON = 
     "QPushButton.primary { "
-    "   background: " + GRADIENT_PRIMARY_BUTTON + "; "
+    "   background: " + GRADIENT_PRIMARY + "; "
     "   color: white; "
-    "   border: 2px solid transparent; "
+    "   border: none; "
+    "   border-radius: 10px; "
+    "   padding: 14px 28px; "
+    "   font-weight: 600; "
+    "   font-size: 14px; "
+    "   min-width: 140px; "
+    "   min-height: 44px; "
+    "   box-shadow: 0 2px 8px rgba(210, 105, 30, 0.3); "
+    "   transition: all 0.2s ease; "
+    "} "
+    "QPushButton.primary:hover { "
+    "   background: " + GRADIENT_FIRE + "; "
+    "   transform: translateY(-1px); "
+    "   box-shadow: 0 4px 12px rgba(210, 105, 30, 0.4); "
+    "} "
+    "QPushButton.primary:pressed { "
+    "   background: " + NMERA_PRIMARY_DARK + "; "
+    "   transform: translateY(0px); "
+    "   box-shadow: 0 2px 6px rgba(210, 105, 30, 0.3); "
+    "} "
+    "QPushButton.primary:disabled { "
+    "   background: " + BORDER_GRAY + "; "
+    "   color: " + TEXT_MUTED + "; "
+    "   transform: none; "
+    "   box-shadow: none; "
+    "}";
+
+// Modern Secondary Button (Warm Theme)
+const QString SECONDARY_BUTTON = 
+    "QPushButton.secondary { "
+    "   background: " + CARD_BG + "; "
+    "   color: " + TEXT_PRIMARY + "; "
+    "   border: 2px solid " + BORDER_GRAY + "; "
+    "   border-radius: 10px; "
+    "   padding: 14px 28px; "
+    "   font-weight: 500; "
+    "   font-size: 14px; "
+    "   min-width: 140px; "
+    "   min-height: 44px; "
+    "   transition: all 0.2s ease; "
+    "} "
+    "QPushButton.secondary:hover { "
+    "   background: " + HOVER_BG + "; "
+    "   border-color: " + NMERA_PRIMARY + "; "
+    "   transform: translateY(-1px); "
+    "   box-shadow: 0 2px 8px rgba(210, 105, 30, 0.2); "
+    "} "
+    "QPushButton.secondary:pressed { "
+    "   background: " + ACTIVE_BG + "; "
+    "   transform: translateY(0px); "
+    "}";
+
+// Modern Danger Button
+const QString CANCEL_BUTTON = 
+    "QPushButton.cancel { "
+    "   background: " + CARD_BG + "; "
+    "   color: " + ERROR_RED + "; "
+    "   border: 1px solid " + ERROR_RED + "; "
     "   border-radius: 8px; "
     "   padding: 12px 24px; "
-    "   font-weight: bold; "
-    "   font-size: 11pt; "
+    "   font-weight: 500; "
+    "   font-size: 14px; "
     "   min-width: 120px; "
     "   min-height: 40px; "
     "} "
-    "QPushButton.primary:hover { "
-    "   background: " + GRADIENT_PRIMARY_BUTTON_HOVER + "; "
-    "   border: 2px solid " + GOLDEN_GLOW + "; "
-    "   padding: 12px 24px; "
-    "   transform: scale(1.05); "
-    "} "
-    "QPushButton.primary:pressed { "
-    "   background: " + FLAME_RED + "; "
-    "   padding: 13px 24px 11px 24px; "
-    "   border: 2px solid " + FLAME_RED + "; "
-    "} "
-    "QPushButton.primary:disabled { "
-    "   background: " + ASH_GRAY + "; "
-    "}";
-
-// Secondary Button (earthy tones)
-const QString SECONDARY_BUTTON = 
-    "QPushButton.secondary { "
-    "   background: " + WARM_EARTH + "; "
-    "   color: white; "
-    "   border: none; "
-    "   border-radius: 5px; "
-    "   padding: 10px 20px; "
-    "   font-size: 10pt; "
-    "   min-width: 100px; "
-    "} "
-    "QPushButton.secondary:hover { "
-    "   background: " + WOOD_BROWN + "; "
-    "} "
-    "QPushButton.secondary:pressed { "
-    "   background: " + DEEP_PINE + "; "
-    "}";
-
-// Cancel/Danger Button
-const QString CANCEL_BUTTON = 
-    "QPushButton.cancel { "
-    "   background: white; "
-    "   color: " + CHARCOAL + "; "
-    "   border: 2px solid " + ASH_GRAY + "; "
-    "   border-radius: 5px; "
-    "   padding: 10px 20px; "
-    "   font-size: 10pt; "
-    "   min-width: 100px; "
-    "} "
     "QPushButton.cancel:hover { "
-    "   border-color: " + FLAME_RED + "; "
-    "   color: " + FLAME_RED + "; "
+    "   background: " + ERROR_RED + "; "
+    "   color: white; "
     "} "
     "QPushButton.cancel:pressed { "
-    "   background: " + CREAM + "; "
+    "   background: #DC2626; "
     "}";
 
-// Table/TableView with warm tones
+// Modern Table View
 const QString TABLE_VIEW = 
     "QTableView { "
-    "   background-color: white; "
-    "   alternate-background-color: " + CREAM + "; "
-    "   selection-background-color: " + EMBER_ORANGE + "; "
+    "   background-color: " + CARD_BG + "; "
+    "   alternate-background-color: " + SURFACE_BG + "; "
+    "   selection-background-color: " + SELECTED_BG + "; "
     "   selection-color: white; "
-    "   gridline-color: #e0d4c8; "
-    "   border: 1px solid " + WARM_EARTH + "; "
-    "   border-radius: 4px; "
+    "   gridline-color: " + BORDER_GRAY + "; "
+    "   border: 1px solid " + BORDER_GRAY + "; "
+    "   border-radius: 8px; "
+    "   color: " + TEXT_PRIMARY + "; "
     "} "
     "QTableView::item { "
-    "   padding: 6px; "
+    "   padding: 12px 8px; "
+    "   border: none; "
     "} "
     "QTableView::item:hover { "
-    "   background-color: #ffe8d6; "
+    "   background-color: " + HOVER_BG + "; "
+    "} "
+    "QTableView::item:selected { "
+    "   background-color: " + SELECTED_BG + "; "
+    "   color: white; "
     "} "
     "QHeaderView::section { "
-    "   background: " + GRADIENT_FOREST + "; "
-    "   color: white; "
-    "   padding: 8px; "
+    "   background: " + SURFACE_BG + "; "
+    "   color: " + TEXT_PRIMARY + "; "
+    "   padding: 12px 8px; "
     "   border: none; "
-    "   border-right: 1px solid " + WARM_EARTH + "; "
-    "   font-weight: bold; "
-    "   font-size: 9pt; "
+    "   border-right: 1px solid " + BORDER_GRAY + "; "
+    "   border-bottom: 1px solid " + BORDER_GRAY + "; "
+    "   font-weight: 600; "
+    "   font-size: 13px; "
     "}";
 
-// GroupBox with context colors - ENHANCED FOR READABILITY
+// Modern Card/GroupBox
 const QString GROUP_BOX = 
     "QGroupBox { "
-    "   border: 2px solid " + WARM_EARTH + "; "
-    "   border-radius: 10px; "
-    "   margin-top: 20px; "
-    "   padding: 22px 18px 18px 18px; "
-    "   font-weight: bold; "
-    "   font-size: 11pt; "
-    "   background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 white, stop:1 #fafafa); "
+    "   border: 1px solid " + BORDER_GRAY + "; "
+    "   border-radius: 12px; "
+    "   margin-top: 16px; "
+    "   padding: 20px; "
+    "   font-weight: 600; "
+    "   font-size: 14px; "
+    "   background: " + CARD_BG + "; "
+    "   color: " + TEXT_PRIMARY + "; "
     "} "
     "QGroupBox::title { "
     "   subcontrol-origin: margin; "
     "   subcontrol-position: top left; "
     "   padding: 8px 16px; "
-    "   background: " + GRADIENT_WARNING + "; "
-    "   color: " + CHARCOAL + "; "
-    "   border-radius: 6px; "
-    "   left: 15px; "
-    "   font-size: 11pt; "
-    "   font-weight: bold; "
+    "   background: " + SURFACE_BG + "; "
+    "   color: " + TEXT_PRIMARY + "; "
+    "   border-radius: 8px; "
+    "   left: 16px; "
+    "   font-size: 14px; "
+    "   font-weight: 600; "
     "}";
 
-// Client/Success themed GroupBox - ENHANCED FOR READABILITY
+// Success Card
 const QString GROUP_BOX_SUCCESS = 
     "QGroupBox.success { "
-    "   border: 2px solid " + SUCCESS_GREEN + "; "
-    "   border-radius: 10px; "
-    "   margin-top: 20px; "
-    "   padding: 22px 18px 18px 18px; "
-    "   font-weight: bold; "
-    "   background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #f0fdf4, stop:1 #e6f9ed); "
+    "   border: 1px solid " + SUCCESS_GREEN + "; "
+    "   border-radius: 12px; "
+    "   margin-top: 16px; "
+    "   padding: 20px; "
+    "   font-weight: 600; "
+    "   background: " + CARD_BG + "; "
+    "   color: " + TEXT_PRIMARY + "; "
     "} "
     "QGroupBox.success::title { "
     "   subcontrol-origin: margin; "
     "   subcontrol-position: top left; "
-    "   padding: 6px 14px; "
-    "   background-color: " + SUCCESS_GREEN + "; "
+    "   padding: 8px 16px; "
+    "   background: " + SUCCESS_GREEN + "; "
     "   color: white; "
-    "   border-radius: 5px; "
-    "   left: 12px; "
-    "   font-size: 11pt; "
+    "   border-radius: 8px; "
+    "   left: 16px; "
+    "   font-size: 14px; "
+    "   font-weight: 600; "
     "}";
 
-// Delivery/Fire themed GroupBox - ENHANCED FOR READABILITY
+// Primary Card
 const QString GROUP_BOX_FIRE = 
     "QGroupBox.fire { "
-    "   border: 2px solid " + EMBER_ORANGE + "; "
-    "   border-radius: 8px; "
-    "   margin-top: 18px; "
-    "   padding: 20px 15px 15px 15px; "
-    "   font-weight: bold; "
-    "   background-color: " + CREAM + "; "
+    "   border: 1px solid " + ADOBE_BLUE + "; "
+    "   border-radius: 12px; "
+    "   margin-top: 16px; "
+    "   padding: 20px; "
+    "   font-weight: 600; "
+    "   background: " + CARD_BG + "; "
+    "   color: " + TEXT_PRIMARY + "; "
     "} "
     "QGroupBox.fire::title { "
     "   subcontrol-origin: margin; "
     "   subcontrol-position: top left; "
-    "   padding: 6px 14px; "
-    "   background-color: " + EMBER_ORANGE + "; "
+    "   padding: 8px 16px; "
+    "   background: " + ADOBE_BLUE + "; "
     "   color: white; "
-    "   border-radius: 5px; "
-    "   left: 12px; "
-    "   font-size: 11pt; "
+    "   border-radius: 8px; "
+    "   left: 16px; "
+    "   font-size: 14px; "
+    "   font-weight: 600; "
     "}";
 
-// Urgent/Priority themed GroupBox - ENHANCED FOR READABILITY
+// Warning Card
 const QString GROUP_BOX_URGENT = 
     "QGroupBox.urgent { "
-    "   border: 2px solid " + FLAME_RED + "; "
-    "   border-radius: 8px; "
-    "   margin-top: 18px; "
-    "   padding: 20px 15px 15px 15px; "
-    "   font-weight: bold; "
-    "   background-color: #fef2f2; "
+    "   border: 1px solid " + WARNING_ORANGE + "; "
+    "   border-radius: 12px; "
+    "   margin-top: 16px; "
+    "   padding: 20px; "
+    "   font-weight: 600; "
+    "   background: " + CARD_BG + "; "
+    "   color: " + TEXT_PRIMARY + "; "
     "} "
     "QGroupBox.urgent::title { "
     "   subcontrol-origin: margin; "
     "   subcontrol-position: top left; "
-    "   padding: 6px 14px; "
-    "   background-color: " + FLAME_RED + "; "
+    "   padding: 8px 16px; "
+    "   background: " + WARNING_ORANGE + "; "
     "   color: white; "
-    "   border-radius: 5px; "
-    "   left: 12px; "
-    "   font-size: 11pt; "
+    "   border-radius: 8px; "
+    "   left: 16px; "
+    "   font-size: 14px; "
+    "   font-weight: 600; "
     "}";
 
-// Tab Widget with wood tones
+// Modern Tab Widget
 const QString TAB_WIDGET = 
     "QTabWidget::pane { "
-    "   border: 2px solid " + WARM_EARTH + "; "
-    "   border-radius: 4px; "
-    "   background: white; "
-    "   top: -2px; "
+    "   border: 1px solid " + BORDER_GRAY + "; "
+    "   border-radius: 8px; "
+    "   background: " + CARD_BG + "; "
+    "   top: -1px; "
     "} "
     "QTabBar::tab { "
-    "   background: " + WARM_EARTH + "; "
-    "   color: white; "
-    "   padding: 10px 20px; "
-    "   margin-right: 4px; "
-    "   border-top-left-radius: 4px; "
-    "   border-top-right-radius: 4px; "
-    "   font-size: 10pt; "
-    "   min-width: 100px; "
+    "   background: " + SURFACE_BG + "; "
+    "   color: " + TEXT_SECONDARY + "; "
+    "   padding: 12px 20px; "
+    "   margin-right: 2px; "
+    "   border-top-left-radius: 8px; "
+    "   border-top-right-radius: 8px; "
+    "   font-size: 14px; "
+    "   font-weight: 500; "
+    "   min-width: 120px; "
+    "   border: 1px solid transparent; "
+    "   border-bottom: none; "
     "} "
     "QTabBar::tab:hover { "
-    "   background: " + EMBER_ORANGE + "; "
+    "   background: " + HOVER_BG + "; "
+    "   color: " + TEXT_PRIMARY + "; "
     "} "
     "QTabBar::tab:selected { "
-    "   background: " + GRADIENT_ACTIVE_TAB + "; "
-    "   font-weight: bold; "
+    "   background: " + CARD_BG + "; "
+    "   color: " + TEXT_PRIMARY + "; "
+    "   border-color: " + BORDER_GRAY + "; "
+    "   font-weight: 600; "
     "} "
     "QTabBar::tab:!selected { "
-    "   margin-top: 4px; "
+    "   margin-top: 2px; "
     "}";
 
-// Line Edit with warm border - ENHANCED FOR READABILITY
+// ==================== STATUS INDICATORS ====================
+
+// Status Indicator Styles
+const QString STATUS_SUCCESS = 
+    "QLabel.status-success { "
+    "   color: " + SUCCESS_GREEN + "; "
+    "   font-weight: 600; "
+    "   background: rgba(34, 139, 34, 0.1); "
+    "   border: 1px solid " + SUCCESS_GREEN + "; "
+    "   border-radius: 6px; "
+    "   padding: 8px 12px; "
+    "}";
+
+const QString STATUS_WARNING = 
+    "QLabel.status-warning { "
+    "   color: " + WARNING_ORANGE + "; "
+    "   font-weight: 600; "
+    "   background: rgba(255, 140, 0, 0.1); "
+    "   border: 1px solid " + WARNING_ORANGE + "; "
+    "   border-radius: 6px; "
+    "   padding: 8px 12px; "
+    "}";
+
+const QString STATUS_ERROR = 
+    "QLabel.status-error { "
+    "   color: " + ERROR_RED + "; "
+    "   font-weight: 600; "
+    "   background: rgba(220, 20, 60, 0.1); "
+    "   border: 1px solid " + ERROR_RED + "; "
+    "   border-radius: 6px; "
+    "   padding: 8px 12px; "
+    "}";
+
+const QString STATUS_INFO = 
+    "QLabel.status-info { "
+    "   color: " + INFO_CYAN + "; "
+    "   font-weight: 600; "
+    "   background: rgba(32, 178, 170, 0.1); "
+    "   border: 1px solid " + INFO_CYAN + "; "
+    "   border-radius: 6px; "
+    "   padding: 8px 12px; "
+    "}";
+
+// Progress Bar
+const QString PROGRESS_BAR = 
+    "QProgressBar { "
+    "   border: 2px solid " + BORDER_GRAY + "; "
+    "   border-radius: 8px; "
+    "   background: " + SURFACE_BG + "; "
+    "   text-align: center; "
+    "   color: " + TEXT_PRIMARY + "; "
+    "   font-weight: 600; "
+    "   height: 20px; "
+    "} "
+    "QProgressBar::chunk { "
+    "   background: " + GRADIENT_PRIMARY + "; "
+    "   border-radius: 6px; "
+    "}";
+
+// ==================== ENHANCED FORM STYLING ====================
+
+// Modern Input Fields (Enhanced)
 const QString LINE_EDIT = 
     "QLineEdit { "
-    "   border: 2px solid " + ASH_GRAY + "; "
-    "   border-radius: 5px; "
-    "   padding: 8px 12px; "
-    "   background: white; "
-    "   color: " + CHARCOAL + "; "
-    "   font-size: 11pt; "
-    "   min-height: 20px; "
+    "   border: 2px solid " + BORDER_GRAY + "; "
+    "   border-radius: 10px; "
+    "   padding: 14px 18px; "
+    "   background: " + SURFACE_BG + "; "
+    "   color: " + TEXT_PRIMARY + "; "
+    "   font-size: 14px; "
+    "   min-height: 24px; "
+    "   transition: all 0.2s ease; "
     "} "
     "QLineEdit:focus { "
-    "   border-color: " + EMBER_ORANGE + "; "
+    "   border-color: " + NMERA_PRIMARY + "; "
     "   border-width: 2px; "
+    "   background: " + CARD_BG + "; "
+    "   box-shadow: 0 0 0 3px rgba(210, 105, 30, 0.1); "
     "} "
     "QLineEdit:disabled { "
-    "   background: " + SMOKE_WHITE + "; "
-    "   color: " + ASH_GRAY + "; "
+    "   background: " + SURFACE_BG + "; "
+    "   color: " + TEXT_MUTED + "; "
+    "   border-color: " + BORDER_GRAY + "; "
     "} "
     "QTextEdit { "
-    "   border: 2px solid " + ASH_GRAY + "; "
-    "   border-radius: 5px; "
-    "   padding: 8px 12px; "
-    "   background: white; "
-    "   color: " + CHARCOAL + "; "
-    "   font-size: 11pt; "
+    "   border: 2px solid " + BORDER_GRAY + "; "
+    "   border-radius: 10px; "
+    "   padding: 14px 18px; "
+    "   background: " + SURFACE_BG + "; "
+    "   color: " + TEXT_PRIMARY + "; "
+    "   font-size: 14px; "
+    "   min-height: 80px; "
+    "   transition: all 0.2s ease; "
     "} "
     "QTextEdit:focus { "
-    "   border-color: " + EMBER_ORANGE + "; "
+    "   border-color: " + NMERA_PRIMARY + "; "
+    "   border-width: 2px; "
+    "   background: " + CARD_BG + "; "
+    "   box-shadow: 0 0 0 3px rgba(210, 105, 30, 0.1); "
+    "} "
+    "QTextEdit:disabled { "
+    "   background: " + SURFACE_BG + "; "
+    "   color: " + TEXT_MUTED + "; "
     "}";
 
-// ComboBox with forest theme - ENHANCED FOR READABILITY
+// Modern ComboBox
 const QString COMBO_BOX = 
     "QComboBox { "
-    "   border: 2px solid " + ASH_GRAY + "; "
-    "   border-radius: 5px; "
-    "   padding: 8px 12px; "
-    "   background: white; "
-    "   color: " + CHARCOAL + "; "
-    "   font-size: 11pt; "
+    "   border: 1px solid " + BORDER_GRAY + "; "
+    "   border-radius: 8px; "
+    "   padding: 12px 16px; "
+    "   background: " + SURFACE_BG + "; "
+    "   color: " + TEXT_PRIMARY + "; "
+    "   font-size: 14px; "
     "   min-width: 120px; "
     "   min-height: 20px; "
     "} "
     "QComboBox:focus { "
-    "   border-color: " + EMBER_ORANGE + "; "
+    "   border-color: " + ADOBE_BLUE + "; "
+    "   border-width: 2px; "
+    "   background: " + CARD_BG + "; "
     "} "
     "QComboBox::drop-down { "
     "   border: none; "
-    "   background: " + WARM_EARTH + "; "
+    "   background: " + BORDER_GRAY + "; "
     "   width: 32px; "
-    "   border-top-right-radius: 4px; "
-    "   border-bottom-right-radius: 4px; "
+    "   border-top-right-radius: 7px; "
+    "   border-bottom-right-radius: 7px; "
     "} "
     "QComboBox::down-arrow { "
     "   image: none; "
     "   border-left: 5px solid transparent; "
     "   border-right: 5px solid transparent; "
-    "   border-top: 7px solid white; "
-    "   margin-right: 10px; "
+    "   border-top: 6px solid " + TEXT_SECONDARY + "; "
+    "   margin-right: 8px; "
     "} "
     "QComboBox QAbstractItemView { "
-    "   border: 2px solid " + WARM_EARTH + "; "
-    "   selection-background-color: " + EMBER_ORANGE + "; "
+    "   border: 1px solid " + BORDER_GRAY + "; "
+    "   border-radius: 8px; "
+    "   selection-background-color: " + SELECTED_BG + "; "
     "   selection-color: white; "
-    "   background: white; "
-    "   color: " + CHARCOAL + "; "
-    "   font-size: 11pt; "
-    "   padding: 4px; "
+    "   background: " + CARD_BG + "; "
+    "   color: " + TEXT_PRIMARY + "; "
+    "   font-size: 14px; "
+    "   padding: 8px; "
     "} "
     "QSpinBox, QDoubleSpinBox, QDateEdit { "
-    "   border: 2px solid " + ASH_GRAY + "; "
-    "   border-radius: 5px; "
-    "   padding: 8px 12px; "
-    "   background: white; "
-    "   color: " + CHARCOAL + "; "
-    "   font-size: 11pt; "
+    "   border: 1px solid " + BORDER_GRAY + "; "
+    "   border-radius: 8px; "
+    "   padding: 12px 16px; "
+    "   background: " + SURFACE_BG + "; "
+    "   color: " + TEXT_PRIMARY + "; "
+    "   font-size: 14px; "
     "   min-height: 20px; "
     "} "
     "QSpinBox:focus, QDoubleSpinBox:focus, QDateEdit:focus { "
-    "   border-color: " + EMBER_ORANGE + "; "
+    "   border-color: " + ADOBE_BLUE + "; "
+    "   border-width: 2px; "
+    "   background: " + CARD_BG + "; "
     "}";
 
-// Label styles - ENHANCED FOR READABILITY
+// Modern Label Styles
 const QString LABEL_HEADER = 
     "QLabel.header { "
-    "   font-size: 15pt; "
-    "   font-weight: bold; "
-    "   color: " + FOREST_GREEN + "; "
-    "   padding: 10px 0px; "
+    "   font-size: 24px; "
+    "   font-weight: 700; "
+    "   color: " + TEXT_PRIMARY + "; "
+    "   padding: 16px 0px; "
     "}";
 
 const QString LABEL_SUBHEADER = 
     "QLabel.subheader { "
-    "   font-size: 12pt; "
-    "   font-weight: bold; "
-    "   color: " + CHARCOAL + "; "
-    "   padding: 6px 0px; "
+    "   font-size: 18px; "
+    "   font-weight: 600; "
+    "   color: " + TEXT_PRIMARY + "; "
+    "   padding: 12px 0px; "
     "}";
 
 // Form labels
 const QString FORM_LABELS = 
     "QLabel { "
-    "   color: " + CHARCOAL + "; "
-    "   font-size: 10pt; "
-    "   padding: 2px 0px; "
+    "   color: " + TEXT_SECONDARY + "; "
+    "   font-size: 14px; "
+    "   font-weight: 500; "
+    "   padding: 4px 0px; "
     "}";
 
-// Text Edit style (for multi-line text input)
+// Modern Text Edit
 const QString TEXT_EDIT = 
     "QTextEdit { "
-    "   border: 2px solid " + ASH_GRAY + "; "
-    "   border-radius: 5px; "
-    "   padding: 8px 12px; "
-    "   background: white; "
-    "   color: " + CHARCOAL + "; "
-    "   font-size: 11pt; "
-    "   min-height: 60px; "
+    "   border: 1px solid " + BORDER_GRAY + "; "
+    "   border-radius: 8px; "
+    "   padding: 12px 16px; "
+    "   background: " + SURFACE_BG + "; "
+    "   color: " + TEXT_PRIMARY + "; "
+    "   font-size: 14px; "
+    "   min-height: 80px; "
     "} "
     "QTextEdit:focus { "
-    "   border-color: " + EMBER_ORANGE + "; "
+    "   border-color: " + ADOBE_BLUE + "; "
     "   border-width: 2px; "
+    "   background: " + CARD_BG + "; "
     "} "
     "QTextEdit:disabled { "
-    "   background: " + SMOKE_WHITE + "; "
-    "   color: " + ASH_GRAY + "; "
+    "   background: " + SURFACE_BG + "; "
+    "   color: " + TEXT_MUTED + "; "
     "}";
 
-// Organization Header (for WorkOrderDialog)
+// Modern Header
 const QString ORG_HEADER = 
     "QLabel.orgHeader { "
-    "   background: " + GRADIENT_EMBER_TO_FLAME + "; "
+    "   background: " + GRADIENT_PRIMARY + "; "
     "   color: white; "
-    "   border-radius: 6px; "
-    "   padding: 15px 20px; "
-    "   font-size: 16pt; "
-    "   font-weight: bold; "
+    "   border-radius: 12px; "
+    "   padding: 20px 24px; "
+    "   font-size: 20px; "
+    "   font-weight: 700; "
     "}";
 
 // ==================== COMBINED STYLESHEET ====================
 
-// Complete application stylesheet
+// Complete modern application stylesheet with NM-ERA theming
 const QString APPLICATION_STYLE = 
     MAIN_WINDOW + 
     TOOLBAR + 
@@ -480,7 +641,12 @@ const QString APPLICATION_STYLE =
     LABEL_HEADER + 
     LABEL_SUBHEADER + 
     FORM_LABELS + 
-    ORG_HEADER;
+    ORG_HEADER +
+    STATUS_SUCCESS +
+    STATUS_WARNING +
+    STATUS_ERROR +
+    STATUS_INFO +
+    PROGRESS_BAR;
 
-} // namespace FirewoodStyles
+} // namespace AdobeStyles
 

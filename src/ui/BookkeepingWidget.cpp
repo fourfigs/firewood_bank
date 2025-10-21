@@ -24,25 +24,25 @@ BookkeepingWidget::BookkeepingWidget(const QString &username, QWidget *parent)
 
 void BookkeepingWidget::setupUI()
 {
-    setStyleSheet(FirewoodStyles::MAIN_WINDOW);
+    setStyleSheet(AdobeStyles::MAIN_WINDOW);
     
     auto *mainLayout = new QVBoxLayout(this);
     mainLayout->setSpacing(15);
     mainLayout->setContentsMargins(20, 20, 20, 20);
     
-    // Header
-    auto *headerLabel = new QLabel("💰 Financial Management", this);
+    // Header with firewood theme
+    auto *headerLabel = new QLabel(AdobeStyles::ICON_MONEY + " Financial Management", this);
     headerLabel->setStyleSheet(
-        "font-size: 18pt; font-weight: bold; color: " + FirewoodStyles::FOREST_GREEN + "; "
-        "padding: 15px; background: " + FirewoodStyles::GRADIENT_EMBER_TO_FLAME + "; "
-        "color: white; border-radius: 8px; margin-bottom: 10px;"
+        "font-size: 18pt; font-weight: bold; color: white; "
+        "padding: 15px; background: " + AdobeStyles::GRADIENT_PRIMARY + "; "
+        "border-radius: 10px; margin-bottom: 10px;"
     );
     headerLabel->setAlignment(Qt::AlignCenter);
     mainLayout->addWidget(headerLabel);
     
     // Create tab widget
     m_tabs = new QTabWidget(this);
-    m_tabs->setStyleSheet(FirewoodStyles::TAB_WIDGET);
+    m_tabs->setStyleSheet(AdobeStyles::TAB_WIDGET);
     
     setupExpensesTab();
     setupIncomeTab();
@@ -55,7 +55,7 @@ void BookkeepingWidget::setupUI()
     buttonLayout->addStretch();
     
     m_exportBtn = new QPushButton("📊 Export Financial Report", this);
-    m_exportBtn->setStyleSheet(FirewoodStyles::PRIMARY_BUTTON);
+    m_exportBtn->setStyleSheet(AdobeStyles::PRIMARY_BUTTON);
     m_exportBtn->setMinimumHeight(40);
     connect(m_exportBtn, &QPushButton::clicked, this, &BookkeepingWidget::exportFinancialReport);
     
@@ -89,7 +89,7 @@ void BookkeepingWidget::setupExpensesTab()
     filterLayout->addWidget(m_expenseCategoryFilter);
     
     auto *filterBtn = new QPushButton("🔍 Filter", filterGroup);
-    filterBtn->setStyleSheet(FirewoodStyles::PRIMARY_BUTTON);
+    filterBtn->setStyleSheet(AdobeStyles::PRIMARY_BUTTON);
     connect(filterBtn, &QPushButton::clicked, this, &BookkeepingWidget::filterByDateRange);
     filterLayout->addWidget(filterBtn);
     
@@ -98,7 +98,7 @@ void BookkeepingWidget::setupExpensesTab()
     
     // Expenses table
     m_expensesView = new QTableView(m_expensesTab);
-    m_expensesView->setStyleSheet(FirewoodStyles::TABLE_VIEW);
+    m_expensesView->setStyleSheet(AdobeStyles::TABLE_VIEW);
     m_expensesView->setAlternatingRowColors(true);
     m_expensesView->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_expensesView->setSortingEnabled(true);
@@ -110,17 +110,17 @@ void BookkeepingWidget::setupExpensesTab()
     auto *expenseButtonLayout = new QHBoxLayout();
     
     m_addExpenseBtn = new QPushButton("➕ Add Expense", m_expensesTab);
-    m_addExpenseBtn->setStyleSheet(FirewoodStyles::PRIMARY_BUTTON);
+    m_addExpenseBtn->setStyleSheet(AdobeStyles::PRIMARY_BUTTON);
     connect(m_addExpenseBtn, &QPushButton::clicked, this, &BookkeepingWidget::addExpense);
     expenseButtonLayout->addWidget(m_addExpenseBtn);
     
     m_editExpenseBtn = new QPushButton("✏️ Edit Expense", m_expensesTab);
-    m_editExpenseBtn->setStyleSheet(FirewoodStyles::PRIMARY_BUTTON);
+    m_editExpenseBtn->setStyleSheet(AdobeStyles::PRIMARY_BUTTON);
     connect(m_editExpenseBtn, &QPushButton::clicked, this, &BookkeepingWidget::editExpense);
     expenseButtonLayout->addWidget(m_editExpenseBtn);
     
     m_deleteExpenseBtn = new QPushButton("🗑️ Delete Expense", m_expensesTab);
-    m_deleteExpenseBtn->setStyleSheet(FirewoodStyles::CANCEL_BUTTON);
+    m_deleteExpenseBtn->setStyleSheet(AdobeStyles::CANCEL_BUTTON);
     connect(m_deleteExpenseBtn, &QPushButton::clicked, this, &BookkeepingWidget::deleteExpense);
     expenseButtonLayout->addWidget(m_deleteExpenseBtn);
     
@@ -156,7 +156,7 @@ void BookkeepingWidget::setupIncomeTab()
     filterLayout->addWidget(m_incomeSourceFilter);
     
     auto *filterBtn = new QPushButton("🔍 Filter", filterGroup);
-    filterBtn->setStyleSheet(FirewoodStyles::PRIMARY_BUTTON);
+    filterBtn->setStyleSheet(AdobeStyles::PRIMARY_BUTTON);
     connect(filterBtn, &QPushButton::clicked, this, &BookkeepingWidget::filterByDateRange);
     filterLayout->addWidget(filterBtn);
     
@@ -165,7 +165,7 @@ void BookkeepingWidget::setupIncomeTab()
     
     // Income table
     m_incomeView = new QTableView(m_incomeTab);
-    m_incomeView->setStyleSheet(FirewoodStyles::TABLE_VIEW);
+    m_incomeView->setStyleSheet(AdobeStyles::TABLE_VIEW);
     m_incomeView->setAlternatingRowColors(true);
     m_incomeView->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_incomeView->setSortingEnabled(true);
@@ -177,17 +177,17 @@ void BookkeepingWidget::setupIncomeTab()
     auto *incomeButtonLayout = new QHBoxLayout();
     
     m_addIncomeBtn = new QPushButton("➕ Add Income", m_incomeTab);
-    m_addIncomeBtn->setStyleSheet(FirewoodStyles::PRIMARY_BUTTON);
+    m_addIncomeBtn->setStyleSheet(AdobeStyles::PRIMARY_BUTTON);
     connect(m_addIncomeBtn, &QPushButton::clicked, this, &BookkeepingWidget::addIncome);
     incomeButtonLayout->addWidget(m_addIncomeBtn);
     
     m_editIncomeBtn = new QPushButton("✏️ Edit Income", m_incomeTab);
-    m_editIncomeBtn->setStyleSheet(FirewoodStyles::PRIMARY_BUTTON);
+    m_editIncomeBtn->setStyleSheet(AdobeStyles::PRIMARY_BUTTON);
     connect(m_editIncomeBtn, &QPushButton::clicked, this, &BookkeepingWidget::editIncome);
     incomeButtonLayout->addWidget(m_editIncomeBtn);
     
     m_deleteIncomeBtn = new QPushButton("🗑️ Delete Income", m_incomeTab);
-    m_deleteIncomeBtn->setStyleSheet(FirewoodStyles::CANCEL_BUTTON);
+    m_deleteIncomeBtn->setStyleSheet(AdobeStyles::CANCEL_BUTTON);
     connect(m_deleteIncomeBtn, &QPushButton::clicked, this, &BookkeepingWidget::deleteIncome);
     incomeButtonLayout->addWidget(m_deleteIncomeBtn);
     
@@ -206,7 +206,7 @@ void BookkeepingWidget::setupSummaryTab()
     // Financial Summary Header
     auto *summaryHeader = new QLabel("📊 Financial Summary", m_summaryTab);
     summaryHeader->setStyleSheet(
-        "font-size: 16pt; font-weight: bold; color: " + FirewoodStyles::FOREST_GREEN + "; "
+        "font-size: 16pt; font-weight: bold; color: " + AdobeStyles::SUCCESS_GREEN + "; "
         "padding: 10px; text-align: center;"
     );
     summaryHeader->setAlignment(Qt::AlignCenter);
@@ -221,15 +221,15 @@ void BookkeepingWidget::setupSummaryTab()
     auto *totalLayout = new QGridLayout(totalGroup);
     
     m_totalIncomeLabel = new QLabel("$0.00", totalGroup);
-    m_totalIncomeLabel->setStyleSheet("font-size: 24pt; font-weight: bold; color: " + FirewoodStyles::FOREST_GREEN + ";");
+    m_totalIncomeLabel->setStyleSheet("font-size: 24pt; font-weight: bold; color: " + AdobeStyles::SUCCESS_GREEN + ";");
     m_totalIncomeLabel->setAlignment(Qt::AlignCenter);
     
     m_totalExpensesLabel = new QLabel("$0.00", totalGroup);
-    m_totalExpensesLabel->setStyleSheet("font-size: 24pt; font-weight: bold; color: " + FirewoodStyles::FLAME_RED + ";");
+    m_totalExpensesLabel->setStyleSheet("font-size: 24pt; font-weight: bold; color: " + AdobeStyles::ERROR_RED + ";");
     m_totalExpensesLabel->setAlignment(Qt::AlignCenter);
     
     m_netIncomeLabel = new QLabel("$0.00", totalGroup);
-    m_netIncomeLabel->setStyleSheet("font-size: 24pt; font-weight: bold; color: " + FirewoodStyles::CHARCOAL + ";");
+    m_netIncomeLabel->setStyleSheet("font-size: 24pt; font-weight: bold; color: " + AdobeStyles::TEXT_PRIMARY + ";");
     m_netIncomeLabel->setAlignment(Qt::AlignCenter);
     
     totalLayout->addWidget(new QLabel("Total Income:"), 0, 0);
@@ -246,11 +246,11 @@ void BookkeepingWidget::setupSummaryTab()
     auto *monthlyLayout = new QGridLayout(monthlyGroup);
     
     m_monthlyIncomeLabel = new QLabel("$0.00", monthlyGroup);
-    m_monthlyIncomeLabel->setStyleSheet("font-size: 18pt; font-weight: bold; color: " + FirewoodStyles::FOREST_GREEN + ";");
+    m_monthlyIncomeLabel->setStyleSheet("font-size: 18pt; font-weight: bold; color: " + AdobeStyles::SUCCESS_GREEN + ";");
     m_monthlyIncomeLabel->setAlignment(Qt::AlignCenter);
     
     m_monthlyExpensesLabel = new QLabel("$0.00", monthlyGroup);
-    m_monthlyExpensesLabel->setStyleSheet("font-size: 18pt; font-weight: bold; color: " + FirewoodStyles::FLAME_RED + ";");
+    m_monthlyExpensesLabel->setStyleSheet("font-size: 18pt; font-weight: bold; color: " + AdobeStyles::ERROR_RED + ";");
     m_monthlyExpensesLabel->setAlignment(Qt::AlignCenter);
     
     monthlyLayout->addWidget(new QLabel("Income:"), 0, 0);
@@ -265,11 +265,11 @@ void BookkeepingWidget::setupSummaryTab()
     auto *yearlyLayout = new QGridLayout(yearlyGroup);
     
     m_yearlyIncomeLabel = new QLabel("$0.00", yearlyGroup);
-    m_yearlyIncomeLabel->setStyleSheet("font-size: 18pt; font-weight: bold; color: " + FirewoodStyles::FOREST_GREEN + ";");
+    m_yearlyIncomeLabel->setStyleSheet("font-size: 18pt; font-weight: bold; color: " + AdobeStyles::SUCCESS_GREEN + ";");
     m_yearlyIncomeLabel->setAlignment(Qt::AlignCenter);
     
     m_yearlyExpensesLabel = new QLabel("$0.00", yearlyGroup);
-    m_yearlyExpensesLabel->setStyleSheet("font-size: 18pt; font-weight: bold; color: " + FirewoodStyles::FLAME_RED + ";");
+    m_yearlyExpensesLabel->setStyleSheet("font-size: 18pt; font-weight: bold; color: " + AdobeStyles::ERROR_RED + ";");
     m_yearlyExpensesLabel->setAlignment(Qt::AlignCenter);
     
     yearlyLayout->addWidget(new QLabel("Income:"), 0, 0);
@@ -420,9 +420,9 @@ void BookkeepingWidget::updateFinancialSummary()
     // Update net income color based on positive/negative
     double netIncome = totalIncome - totalExpenses;
     if (netIncome >= 0) {
-        m_netIncomeLabel->setStyleSheet("font-size: 24pt; font-weight: bold; color: " + FirewoodStyles::FOREST_GREEN + ";");
+        m_netIncomeLabel->setStyleSheet("font-size: 24pt; font-weight: bold; color: " + AdobeStyles::SUCCESS_GREEN + ";");
     } else {
-        m_netIncomeLabel->setStyleSheet("font-size: 24pt; font-weight: bold; color: " + FirewoodStyles::FLAME_RED + ";");
+        m_netIncomeLabel->setStyleSheet("font-size: 24pt; font-weight: bold; color: " + AdobeStyles::ERROR_RED + ";");
     }
 }
 

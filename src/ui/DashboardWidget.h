@@ -28,6 +28,8 @@ public slots:
 
 private:
     void setupUI();
+    void createModernHeader();
+    void createModernDashboard();
     void createStatisticsSection();  // NEW: For leads and admins
     void createTopSection();
     void createBottomSection();
@@ -79,5 +81,11 @@ private:
     QFrame* createSection(const QString &title, QWidget *content);
     QGroupBox* createGroupBox(const QString &title);
     QFrame* createSeparator();
+    QWidget* createQuickStatCard(const QString &icon, const QString &label, const QString &value);
+    QWidget* createModernCard(const QString &title, const QString &subtitle, QWidget *content);
+    QWidget* createWorkOrdersContent();
+    QWidget* createCalendarContent();
+    QWidget* createInventoryContent();
+    QWidget* createAlertsContent();
 };
 
