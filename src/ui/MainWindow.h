@@ -45,6 +45,9 @@ private slots:
     void deleteSelectedClient();
     void deleteSelectedOrder();
     void deleteSelectedInventoryItem();
+    void searchClients(const QString &text);
+    void searchOrders(const QString &text);
+    void searchInventory(const QString &text);
 
 private:
     void setupUI();
@@ -55,6 +58,9 @@ private:
     void loadUserInfo();
     void applyRoleBasedPermissions();
     void setupVolunteerView();
+    void addSearchBoxToTab(QWidget *tabWidget, QTableView *tableView, QSqlTableModel *model, const QString &searchColumns);
+    void updateStatusBar();
+    void setupKeyboardShortcuts();
     
     // User info
     QString m_username;
@@ -68,6 +74,8 @@ private:
     QTableView *m_householdsView = nullptr;
     QTableView *m_inventoryView = nullptr;
     QTableView *m_ordersView = nullptr;
+    class DashboardWidget *m_dashboard = nullptr;  // Dashboard reference for refreshing
+    class QStatusBar *m_statusBar = nullptr;
     
     // Database Models
     QSqlTableModel *m_householdsModel = nullptr;

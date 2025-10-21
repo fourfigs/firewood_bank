@@ -1,0 +1,58 @@
+============================================================
+  FIREWOOD BANK - SAMPLE DATA LOADING INSTRUCTIONS
+============================================================
+
+STEP 1: LOGIN
+-------------
+The application should be running. If not, run:
+    .\build\bin\Release\firewood_bank.exe
+
+Login credentials:
+    Username: admin
+    Password: admin
+
+STEP 2: LOAD SAMPLE DATA
+------------------------
+Once logged in:
+1. Click on the menu bar: Tools
+2. Select: Load Sample Data
+3. Confirm the action (click Yes)
+
+STEP 3: VERIFY SUCCESS
+----------------------
+You should see a success message showing:
+- 10 households/clients
+- 14 total work orders (4 Completed, 2 In Progress, 5 Scheduled, 3 Pending)
+- 25+ inventory items across 5 categories
+- 5 completed deliveries in delivery log
+- 5 referral agencies
+
+STEP 4: EXAMINE THE DATABASE
+----------------------------
+After loading, run this PowerShell script:
+    .\check_sample_data.ps1
+
+Or manually check the database:
+Location: C:\Users\humbo\AppData\Local\firewood_bank\firewood_bank.sqlite
+
+WHAT DATA GETS LOADED?
+----------------------
+See full details in: docs\SAMPLE_DATA_CONTENTS.md
+
+Quick summary:
+- 6 new users (employees, leads, volunteers)
+- 5 referral agencies
+- 10 client households
+- 5 inventory categories
+- 25+ inventory items (wood, safety equipment, tools, etc.)
+- 5 pieces of equipment
+- 3 work schedule events
+- 8 volunteer certifications
+- 14 work orders (various statuses)
+- 5 delivery log entries
+- 2 profile change requests
+
+All data is realistic and ready for testing/demos!
+
+============================================================
+

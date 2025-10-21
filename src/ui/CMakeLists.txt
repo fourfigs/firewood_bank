@@ -7,6 +7,12 @@ add_library(ui STATIC
     DashboardWidget.h
     VolunteerProfileWidget.cpp
     VolunteerProfileWidget.h
+    BookkeepingWidget.cpp
+    BookkeepingWidget.h
+    ExpenseDialog.cpp
+    ExpenseDialog.h
+    IncomeDialog.cpp
+    IncomeDialog.h
     ClientDialog.cpp
     ClientDialog.h
     WorkOrderDialog.cpp

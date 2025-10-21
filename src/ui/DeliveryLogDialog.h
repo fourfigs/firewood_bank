@@ -8,26 +8,28 @@
 #include <QLabel>
 
 class DeliveryLogDialog : public QDialog {
-    Q_OBJECT
+  Q_OBJECT
 
 public:
-    explicit DeliveryLogDialog(QWidget *parent = nullptr);
-    ~DeliveryLogDialog() = default;
+  // A single constructor handles both general and pre-filtered views.
+  explicit DeliveryLogDialog(const QString& driverFilter = "", QWidget* parent = nullptr);
+  ~DeliveryLogDialog() = default;
 
 private slots:
-    void loadDeliveryLog();
-    void applyFilters();
-    void exportToCsv();
+  void applyFilters();
+  void exportToCsv();
 
 private:
-    void setupUI();
-    
-    QTableWidget *m_logTable = nullptr;
-    QDateEdit *m_startDateEdit = nullptr;
-    QDateEdit *m_endDateEdit = nullptr;
-    QComboBox *m_driverFilterCombo = nullptr;
-    QLabel *m_totalMilesLabel = nullptr;
-    QLabel *m_totalCordsLabel = nullptr;
-    QLabel *m_deliveryCountLabel = nullptr;
-};
+  void setupUI();
+  void populateDriverFilter();
 
+  QTableWidget* m_logTable = nullptr;
+  QDateEdit* m_startDateEdit = nullptr;
+  QDateEdit* m_endDateEdit = nullptr;
+  QComboBox* m_driverFilterCombo = nullptr;
+  QLabel* m_totalMilesLabel = nullptr;
+  QLabel* m_totalCordsLabel = nullptr;
+  QLabel* m_deliveryCountLabel = nullptr;
+
+  QString m_initialDriverFilter; // Used to pre-filter the dialog
+};

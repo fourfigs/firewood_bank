@@ -758,6 +758,116 @@ static void runMigrations(QSqlDatabase &db) {
         qDebug() << "Migration 10 completed successfully";
     }
     
+    // Migration 11: Bookkeeping and Financial Tracking
+    if (version < 11) {
+        qDebug() << "Running migration 11: Creating bookkeeping and financial tracking tables...";
+        
+        // Create expenses table
+        if (!query.exec("CREATE TABLE IF NOT EXISTS expenses (\n"
+                       "  id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
+                       "  date TEXT NOT NULL,\n"
+                       "  category TEXT NOT NULL,\n"  // fuel, maintenance, wood_purchase, admin, utilities, insurance, equipment
+                       "  amount REAL NOT NULL,\n"
+                       "  description TEXT,\n"
+                       "  vendor TEXT,\n"
+                       "  receipt_path TEXT,\n"
+                       "  payment_method TEXT,\n"      // cash, check, card, bank_transfer
+                       "  created_by TEXT,\n"
+                       "  created_at TEXT DEFAULT CURRENT_TIMESTAMP,\n"
+                       "  updated_at TEXT DEFAULT CURRENT_TIMESTAMP\n"
+                       ");")) {
+            qDebug() << "ERROR: Failed to create expenses table:" << query.lastError().text();
+            db.rollback();
+            return;
+        }
+        
+        // Create income table
+        if (!query.exec("CREATE TABLE IF NOT EXISTS income (\n"
+                       "  id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
+                       "  date TEXT NOT NULL,\n"
+                       "  source TEXT NOT NULL,\n"     // donation, grant, wood_sales, fundraiser, other
+                       "  amount REAL NOT NULL,\n"
+                       "  description TEXT,\n"
+                       "  donor_name TEXT,\n"
+                       "  tax_deductible INTEGER DEFAULT 1,\n"
+                       "  receipt_issued INTEGER DEFAULT 0,\n"
+                       "  created_by TEXT,\n"
+                       "  created_at TEXT DEFAULT CURRENT_TIMESTAMP,\n"
+                       "  updated_at TEXT DEFAULT CURRENT_TIMESTAMP\n"
+                       ");")) {
+            qDebug() << "ERROR: Failed to create income table:" << query.lastError().text();
+            db.rollback();
+            return;
+        }
+        
+        // Create budget_categories table for planning
+        if (!query.exec("CREATE TABLE IF NOT EXISTS budget_categories (\n"
+                       "  id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
+                       "  category_name TEXT NOT NULL UNIQUE,\n"
+                       "  category_type TEXT NOT NULL,\n"  // expense or income
+                       "  annual_budget REAL DEFAULT 0,\n"
+                       "  description TEXT,\n"
+                       "  active INTEGER DEFAULT 1,\n"
+                       "  created_at TEXT DEFAULT CURRENT_TIMESTAMP\n"
+                       ");")) {
+            qDebug() << "ERROR: Failed to create budget_categories table:" << query.lastError().text();
+            db.rollback();
+            return;
+        }
+        
+        // Create indexes for better performance
+        query.exec("CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(date);");
+        query.exec("CREATE INDEX IF NOT EXISTS idx_expenses_category ON expenses(category);");
+        query.exec("CREATE INDEX IF NOT EXISTS idx_income_date ON income(date);");
+        query.exec("CREATE INDEX IF NOT EXISTS idx_income_source ON income(source);");
+        
+        // Insert default expense categories
+        QStringList expenseCategories = {
+            "fuel", "maintenance", "wood_purchase", "admin", "utilities", 
+            "insurance", "equipment", "supplies", "marketing", "other"
+        };
+        
+        for (const QString &category : expenseCategories) {
+            QSqlQuery insertCat(db);
+            insertCat.prepare("INSERT INTO budget_categories (category_name, category_type, description) "
+                             "VALUES (:name, 'expense', :desc)");
+            insertCat.bindValue(":name", category);
+            insertCat.bindValue(":desc", QString("Default %1 expense category").arg(category));
+            
+            if (!insertCat.exec()) {
+                qDebug() << "Warning: Failed to insert expense category" << category << ":" << insertCat.lastError().text();
+            }
+        }
+        
+        // Insert default income categories
+        QStringList incomeCategories = {
+            "donation", "grant", "wood_sales", "fundraiser", "other"
+        };
+        
+        for (const QString &category : incomeCategories) {
+            QSqlQuery insertCat(db);
+            insertCat.prepare("INSERT INTO budget_categories (category_name, category_type, description) "
+                             "VALUES (:name, 'income', :desc)");
+            insertCat.bindValue(":name", category);
+            insertCat.bindValue(":desc", QString("Default %1 income category").arg(category));
+            
+            if (!insertCat.exec()) {
+                qDebug() << "Warning: Failed to insert income category" << category << ":" << insertCat.lastError().text();
+            }
+        }
+        
+        qDebug() << "Bookkeeping system created successfully";
+        
+        QSqlQuery up(db);
+        if (!up.exec("UPDATE schema_version SET version = 11;")) {
+            qDebug() << "ERROR: Failed to update schema version:" << up.lastError().text();
+            db.rollback();
+            return;
+        }
+        version = 11;
+        qDebug() << "Migration 11 completed successfully";
+    }
+    
     if (!db.commit()) {
         qDebug() << "ERROR: Failed to commit transaction:" << db.lastError().text();
         return;
@@ -815,46 +925,80 @@ bool loadSqlScript(const QString &filePath, QSqlDatabase &db) {
         return false;
     }
     
-    // Split by semicolons to handle multiple statements
-    QStringList statements = scriptContent.split(';', Qt::SkipEmptyParts);
-    
-    if (!db.transaction()) {
-        qDebug() << "ERROR: Failed to start transaction:" << db.lastError().text();
-        return false;
+    // Remove all comment lines first to avoid issues with splitting
+    QStringList lines = scriptContent.split('\n');
+    QStringList cleanedLines;
+    for (const QString &line : lines) {
+        QString trimmedLine = line.trimmed();
+        // Skip comment-only lines and empty lines
+        if (!trimmedLine.isEmpty() && !trimmedLine.startsWith("--")) {
+            cleanedLines.append(line);
+        }
     }
+    QString cleanedContent = cleanedLines.join('\n');
     
+    // Split by semicolons to handle multiple statements
+    QStringList statements = cleanedContent.split(';', Qt::SkipEmptyParts);
+    
+    qDebug() << "✅ SQL file loaded successfully";
+    qDebug() << "   Total characters read:" << scriptContent.length();
+    qDebug() << "   Total statements found after cleaning:" << statements.size();
+    
+    // Don't use transaction - execute statements individually to avoid rollback on errors
     QSqlQuery query(db);
     int successCount = 0;
     int failCount = 0;
+    int skippedCount = 0;
+    QStringList failedStatements;
     
     for (const QString &statement : statements) {
         QString trimmed = statement.trimmed();
         
-        // Skip empty statements and comments
-        if (trimmed.isEmpty() || trimmed.startsWith("--")) {
+        // Skip empty statements
+        if (trimmed.isEmpty()) {
+            skippedCount++;
             continue;
         }
         
         // Skip SELECT statements (they're just for display in the script)
         if (trimmed.toUpper().startsWith("SELECT")) {
+            skippedCount++;
             continue;
         }
         
+        qDebug() << "\n🔵 Executing:" << trimmed.left(80) << "...";
+        
         if (!query.exec(trimmed)) {
-            qDebug() << "WARNING: Failed to execute statement:" << trimmed.left(100);
-            qDebug() << "  Error:" << query.lastError().text();
+            QString errorMsg = query.lastError().text();
+            qDebug() << "  ❌ FAILED!";
+            qDebug() << "     Error:" << errorMsg;
+            qDebug() << "     Statement:" << trimmed.left(200);
             failCount++;
-            // Continue anyway - some statements might fail if data already exists
+            failedStatements.append(QString("Error: %1\nStatement: %2").arg(errorMsg).arg(trimmed.left(100)));
         } else {
+            int rowsAffected = query.numRowsAffected();
+            qDebug() << "  ✅ Success! Rows affected:" << rowsAffected;
             successCount++;
         }
     }
     
-    if (!db.commit()) {
-        qDebug() << "ERROR: Failed to commit transaction:" << db.lastError().text();
-        db.rollback();
-        return false;
+    qDebug() << "\n========================================";
+    qDebug() << "STATEMENT PROCESSING SUMMARY";
+    qDebug() << "========================================";
+    qDebug() << "  ✅ Executed successfully:" << successCount;
+    qDebug() << "  ❌ Failed:" << failCount;
+    qDebug() << "  ⏭️  Skipped (comments/empty):" << skippedCount;
+    
+    if (failCount > 0) {
+        qDebug() << "\n⚠️  FAILED STATEMENTS:";
+        for (int i = 0; i < failedStatements.size() && i < 5; ++i) {
+            qDebug() << "\n" << (i + 1) << "." << failedStatements[i];
+        }
+        if (failedStatements.size() > 5) {
+            qDebug() << "\n... and" << (failedStatements.size() - 5) << "more failed statements";
+        }
     }
+    qDebug() << "========================================\n";
     
     qDebug() << "SQL script execution completed:";
     qDebug() << "  Successful statements:" << successCount;
@@ -864,7 +1008,7 @@ bool loadSqlScript(const QString &filePath, QSqlDatabase &db) {
 }
 
 bool loadSampleData() {
-    qDebug() << "Loading sample data...";
+    qDebug() << "Loading sample data from SAMPLE_DATA.sql...";
     
     QSqlDatabase db = QSqlDatabase::database();
     if (!db.isValid() || !db.isOpen()) {
@@ -872,49 +1016,135 @@ bool loadSampleData() {
         return false;
     }
     
-    // Try multiple possible locations for the sample data file
-    qDebug() << "Current working directory:" << QDir::currentPath();
-    qDebug() << "Application directory:" << QCoreApplication::applicationDirPath();
+    // Create sample_data_status table if it doesn't exist
+    QSqlQuery query(db);
+    if (!query.exec("CREATE TABLE IF NOT EXISTS sample_data_status ("
+                   "  id INTEGER PRIMARY KEY,"
+                   "  loaded_at TEXT DEFAULT CURRENT_TIMESTAMP,"
+                   "  file_path TEXT,"
+                   "  records_loaded INTEGER DEFAULT 0,"
+                   "  database_modified INTEGER DEFAULT 0"
+                   ");")) {
+        qDebug() << "WARNING: Could not create sample_data_status table:" << query.lastError().text();
+    }
     
+    // Check if sample data has already been loaded
+    bool alreadyLoaded = false;
+    bool databaseModified = false;
+    if (query.exec("SELECT COUNT(*) FROM sample_data_status") && query.next()) {
+        alreadyLoaded = query.value(0).toInt() > 0;
+    }
+    
+    // Check if database has been modified (has real data)
+    int clientCount = 0, orderCount = 0;
+    if (query.exec("SELECT COUNT(*) FROM households") && query.next()) {
+        clientCount = query.value(0).toInt();
+    }
+    if (query.exec("SELECT COUNT(*) FROM orders") && query.next()) {
+        orderCount = query.value(0).toInt();
+    }
+    
+    databaseModified = (clientCount > 30 || orderCount > 20); // Threshold for "real" data
+    
+    if (alreadyLoaded) {
+        qDebug() << "⚠️ Sample data has already been loaded";
+        if (databaseModified) {
+            qDebug() << "⚠️ Database appears to have been modified with real data";
+            qDebug() << "   Clients:" << clientCount << "Orders:" << orderCount;
+            qDebug() << "   Consider backing up before reloading sample data";
+        }
+        // Return true but let UI handle the warning/confirmation
+        return true;
+    }
+    
+    // Try multiple possible paths for the SQL file
     QStringList possiblePaths = {
-        // Absolute path first (most reliable for development)
-        "C:/Users/humbo/firewood_bank/docs/SAMPLE_DATA.sql",
-        // Relative to executable (for Release builds in build/bin/Release/)
-        "../../../docs/SAMPLE_DATA.sql",
-        "../../docs/SAMPLE_DATA.sql",
-        "../docs/SAMPLE_DATA.sql",
         "docs/SAMPLE_DATA.sql",
-        "./SAMPLE_DATA.sql",
-        // Using application directory path
-        QCoreApplication::applicationDirPath() + "/../../../docs/SAMPLE_DATA.sql",
+        "../docs/SAMPLE_DATA.sql",
+        "../../docs/SAMPLE_DATA.sql",
+        QCoreApplication::applicationDirPath() + "/docs/SAMPLE_DATA.sql",
+        QCoreApplication::applicationDirPath() + "/../docs/SAMPLE_DATA.sql",
+        QCoreApplication::applicationDirPath() + "/../../docs/SAMPLE_DATA.sql",
+        QCoreApplication::applicationDirPath() + "/../../../docs/SAMPLE_DATA.sql"
     };
     
-    QString foundPath;
+    QString sqlFilePath;
     for (const QString &path : possiblePaths) {
-        QString absPath = QFileInfo(path).absoluteFilePath();
-        qDebug() << "Checking:" << absPath;
-        if (QFile::exists(absPath)) {
-            foundPath = absPath;
-            qDebug() << "✅ Found sample data file at:" << foundPath;
+        QFileInfo fileInfo(path);
+        qDebug() << "Checking path:" << fileInfo.absoluteFilePath();
+        if (fileInfo.exists()) {
+            sqlFilePath = fileInfo.absoluteFilePath();
+            qDebug() << "✅ Found SAMPLE_DATA.sql at:" << sqlFilePath;
             break;
         }
     }
     
-    if (foundPath.isEmpty()) {
-        qDebug() << "ERROR: Could not find SAMPLE_DATA.sql in any expected location";
-        qDebug() << "Tried locations:";
+    if (sqlFilePath.isEmpty()) {
+        qDebug() << "ERROR: Could not find SAMPLE_DATA.sql file";
+        qDebug() << "Tried these locations:";
         for (const QString &path : possiblePaths) {
-            QString absPath = QFileInfo(path).absoluteFilePath();
-            qDebug() << "  -" << absPath << (QFile::exists(absPath) ? "[EXISTS]" : "[NOT FOUND]");
+            qDebug() << "  ❌" << QFileInfo(path).absoluteFilePath();
         }
         return false;
     }
     
-    bool result = loadSqlScript(foundPath, db);
-    qDebug() << "loadSampleData result:" << (result ? "SUCCESS" : "FAILED");
-    return result;
+    // Load the sample data
+    bool success = loadSqlScript(sqlFilePath, db);
+    
+    if (success) {
+        // Record that sample data has been loaded
+        QSqlQuery insertStatus(db);
+        insertStatus.prepare("INSERT INTO sample_data_status (file_path, database_modified) "
+                           "VALUES (:path, :modified)");
+        insertStatus.bindValue(":path", sqlFilePath);
+        insertStatus.bindValue(":modified", databaseModified ? 1 : 0);
+        
+        if (!insertStatus.exec()) {
+            qDebug() << "WARNING: Could not record sample data status:" << insertStatus.lastError().text();
+        } else {
+            qDebug() << "✅ Sample data loaded successfully and status recorded";
+        }
+    }
+    
+    return success;
 }
 
+/**
+ * @brief Check if sample data has been loaded and get status
+ * @return QVariantMap with status information
+ */
+QVariantMap getSampleDataStatus() {
+    QVariantMap status;
+    status["loaded"] = false;
+    status["modified"] = false;
+    status["client_count"] = 0;
+    status["order_count"] = 0;
+    status["loaded_at"] = QString();
+    
+    QSqlDatabase db = QSqlDatabase::database();
+    if (!db.isValid() || !db.isOpen()) {
+        return status;
+    }
+    
+    QSqlQuery query(db);
+    
+    // Check if sample data status table exists and has records
+    if (query.exec("SELECT loaded_at, database_modified FROM sample_data_status ORDER BY id DESC LIMIT 1") 
+        && query.next()) {
+        status["loaded"] = true;
+        status["loaded_at"] = query.value(0).toString();
+        status["modified"] = query.value(1).toBool();
+    }
+    
+    // Get current record counts
+    if (query.exec("SELECT COUNT(*) FROM households") && query.next()) {
+        status["client_count"] = query.value(0).toInt();
+    }
+    if (query.exec("SELECT COUNT(*) FROM orders") && query.next()) {
+        status["order_count"] = query.value(0).toInt();
+    }
+    
+    return status;
 }
 
-
+} // namespace firewood::db

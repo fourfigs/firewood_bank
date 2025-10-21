@@ -22,6 +22,9 @@ class DashboardWidget : public QWidget {
 public:
     explicit DashboardWidget(const UserInfo &userInfo, QWidget *parent = nullptr);
     ~DashboardWidget() = default;
+    
+public slots:
+    void refreshData();  // Refresh all dashboard data
 
 private:
     void setupUI();
@@ -34,6 +37,7 @@ private:
     void loadLowInventory();
     void updateMonthlyCalendar();
     void loadStatistics();  // NEW: Load statistics data
+    void checkInventoryAlerts();  // NEW: Check for low inventory alerts
     
     // User info
     UserInfo m_userInfo;
@@ -56,11 +60,21 @@ private:
     QTextEdit *m_emergenciesText = nullptr;
     QTextEdit *m_lowInventoryText = nullptr;
     QCalendarWidget *m_monthlyCalendar = nullptr;
+    QWidget *m_inventoryAlertsWidget = nullptr;  // NEW: Inventory alerts widget
     
     // Bottom section widgets
     QTableWidget *m_upcomingOrdersTable = nullptr;
     QCalendarWidget *m_twoWeekCalendar = nullptr;
     QTableWidget *m_currentInventoryTable = nullptr;
+    
+    // Inventory At-A-Glance widgets
+    QLabel *m_splitWoodLabel = nullptr;
+    QLabel *m_roundsWoodLabel = nullptr;
+    QLabel *m_regularGasLabel = nullptr;
+    QLabel *m_mixedGasLabel = nullptr;
+    QLabel *m_sawsLabel = nullptr;
+    
+    void loadInventoryAtAGlance();  // Load real inventory data
     
     QFrame* createSection(const QString &title, QWidget *content);
     QGroupBox* createGroupBox(const QString &title);

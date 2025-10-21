@@ -2,6 +2,7 @@
 
 #include <QSqlDatabase>
 #include <QString>
+#include <QVariantMap>
 
 namespace firewood::db {
 
@@ -24,6 +25,12 @@ bool loadSqlScript(const QString &filePath, QSqlDatabase &db);
  * @return true if successful, false otherwise
  */
 bool loadSampleData();
+
+/**
+ * @brief Get sample data loading status
+ * @return QVariantMap with status information
+ */
+QVariantMap getSampleDataStatus();
 
 } // namespace firewood::db
 

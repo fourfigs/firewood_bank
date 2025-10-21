@@ -25,6 +25,7 @@ DashboardWidget::DashboardWidget(const UserInfo &userInfo, QWidget *parent)
     }
     loadUpcomingOrders();
     loadCurrentInventory();
+    loadInventoryAtAGlance();  // Load real inventory data
     loadEmergencies();
     loadLowInventory();
     updateMonthlyCalendar();
@@ -53,15 +54,15 @@ void DashboardWidget::createStatisticsSection()
         "QGroupBox { "
         "   border: 3px solid " + FirewoodStyles::EMBER_ORANGE + "; "
         "   border-radius: 15px; "
-        "   margin-top: 22px; "
-        "   padding: 25px 20px 20px 20px; "
+        "   margin-top: 18px; "
+        "   padding: 15px 20px 15px 20px; "
         "   font-weight: bold; "
         "   background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #fff9f5, stop:1 #ffede0); "
         "} "
         "QGroupBox::title { "
         "   subcontrol-origin: margin; "
         "   subcontrol-position: top center; "
-        "   padding: 10px 24px; "
+        "   padding: 8px 20px; "
         "   background: " + FirewoodStyles::GRADIENT_EMBER_TO_FLAME + "; "
         "   color: white; "
         "   border-radius: 8px; "
@@ -70,24 +71,28 @@ void DashboardWidget::createStatisticsSection()
         "}"
     );
     auto *statsLayout = new QGridLayout(statsBox);
-    statsLayout->setSpacing(18);
-    statsLayout->setContentsMargins(10, 15, 10, 10);
-    statsLayout->setColumnStretch(0, 1);
-    statsLayout->setColumnStretch(1, 1);
-    statsLayout->setColumnStretch(2, 1);
-    statsLayout->setColumnStretch(3, 1);
+    statsLayout->setSpacing(15);
+    statsLayout->setContentsMargins(10, 10, 10, 10);
+    // Adjust column stretch to prevent text cut-off
+    statsLayout->setColumnStretch(0, 1);  // Households
+    statsLayout->setColumnStretch(1, 2);  // Wood Delivered (needs more space)
+    statsLayout->setColumnStretch(2, 2);  // Expenses (needs more space)
+    statsLayout->setColumnStretch(3, 1);  // Calendar (fixed width)
     
         // === HOUSEHOLD COUNT ===
     auto *householdsLabel = new QLabel("<b style='font-size: 13pt; color: " + FirewoodStyles::EMBER_ORANGE + ";'>👥 HOUSEHOLDS SERVED</b>", this);
     statsLayout->addWidget(householdsLabel, 0, 0);
     
     m_totalHouseholdsLabel = new QLabel("Loading...", this);
-    m_totalHouseholdsLabel->setStyleSheet("font-size: 24pt; font-weight: bold; color: " + FirewoodStyles::FOREST_GREEN + "; padding: 10px;");
+    m_totalHouseholdsLabel->setStyleSheet("font-size: 20pt; font-weight: bold; color: " + FirewoodStyles::FOREST_GREEN + "; padding: 10px 5px 15px 5px;");
     m_totalHouseholdsLabel->setAlignment(Qt::AlignCenter);
+    m_totalHouseholdsLabel->setMinimumHeight(60);
     statsLayout->addWidget(m_totalHouseholdsLabel, 1, 0);
     
     // === WOOD DELIVERED ===
     auto *woodLabel = new QLabel("<b style='font-size: 13pt; color: " + FirewoodStyles::EMBER_ORANGE + ";'>🪵 WOOD DELIVERED</b>", this);
+    woodLabel->setWordWrap(false);
+    woodLabel->setMinimumWidth(150);
     statsLayout->addWidget(woodLabel, 0, 1);
     
     auto *woodStatsLayout = new QVBoxLayout();
@@ -95,24 +100,30 @@ void DashboardWidget::createStatisticsSection()
     
     m_woodDeliveredWeekLabel = new QLabel("This Week: <b>0.0 cords</b>", this);
     m_woodDeliveredWeekLabel->setStyleSheet("font-size: 11pt; padding: 3px;");
+    m_woodDeliveredWeekLabel->setWordWrap(false);
     woodStatsLayout->addWidget(m_woodDeliveredWeekLabel);
     
     m_woodDeliveredMonthLabel = new QLabel("This Month: <b>0.0 cords</b>", this);
     m_woodDeliveredMonthLabel->setStyleSheet("font-size: 11pt; padding: 3px;");
+    m_woodDeliveredMonthLabel->setWordWrap(false);
     woodStatsLayout->addWidget(m_woodDeliveredMonthLabel);
     
     m_woodDeliveredYearLabel = new QLabel("This Year: <b>0.0 cords</b>", this);
     m_woodDeliveredYearLabel->setStyleSheet("font-size: 11pt; padding: 3px;");
+    m_woodDeliveredYearLabel->setWordWrap(false);
     woodStatsLayout->addWidget(m_woodDeliveredYearLabel);
     
     m_woodDeliveredAllTimeLabel = new QLabel("All Time: <b>0.0 cords</b>", this);
     m_woodDeliveredAllTimeLabel->setStyleSheet("font-size: 13pt; font-weight: bold; color: " + FirewoodStyles::SUCCESS_GREEN + "; padding: 3px;");
+    m_woodDeliveredAllTimeLabel->setWordWrap(false);
     woodStatsLayout->addWidget(m_woodDeliveredAllTimeLabel);
     
     statsLayout->addLayout(woodStatsLayout, 1, 1);
     
     // === EXPENSES ===
     auto *expensesLabel = new QLabel("<b style='font-size: 13pt; color: " + FirewoodStyles::EMBER_ORANGE + ";'>💰 EXPENSES</b>", this);
+    expensesLabel->setWordWrap(false);
+    expensesLabel->setMinimumWidth(120);
     statsLayout->addWidget(expensesLabel, 0, 2);
     
     auto *expenseStatsLayout = new QVBoxLayout();
@@ -120,18 +131,22 @@ void DashboardWidget::createStatisticsSection()
     
     m_expenseWeekLabel = new QLabel("This Week: <b>$0.00</b>", this);
     m_expenseWeekLabel->setStyleSheet("font-size: 11pt; padding: 3px;");
+    m_expenseWeekLabel->setWordWrap(false);
     expenseStatsLayout->addWidget(m_expenseWeekLabel);
     
     m_expenseMonthLabel = new QLabel("This Month: <b>$0.00</b>", this);
     m_expenseMonthLabel->setStyleSheet("font-size: 11pt; padding: 3px;");
+    m_expenseMonthLabel->setWordWrap(false);
     expenseStatsLayout->addWidget(m_expenseMonthLabel);
     
     m_expenseYearLabel = new QLabel("This Year: <b>$0.00</b>", this);
     m_expenseYearLabel->setStyleSheet("font-size: 11pt; padding: 3px;");
+    m_expenseYearLabel->setWordWrap(false);
     expenseStatsLayout->addWidget(m_expenseYearLabel);
     
     m_expenseAllTimeLabel = new QLabel("All Time: <b>$0.00</b>", this);
     m_expenseAllTimeLabel->setStyleSheet("font-size: 13pt; font-weight: bold; color: " + FirewoodStyles::WARNING_AMBER + "; padding: 3px;");
+    m_expenseAllTimeLabel->setWordWrap(false);
     expenseStatsLayout->addWidget(m_expenseAllTimeLabel);
     
     statsLayout->addLayout(expenseStatsLayout, 1, 2);
@@ -363,67 +378,111 @@ void DashboardWidget::createBottomSection()
     inventoryBox->setStyleSheet(FirewoodStyles::GROUP_BOX_SUCCESS);
     auto *inventoryLayout = new QVBoxLayout(inventoryBox);
     inventoryLayout->setSpacing(8);
-    inventoryLayout->setContentsMargins(12, 12, 12, 12);
+    inventoryLayout->setContentsMargins(15, 18, 15, 15);
     
     // Wood Section
-    auto *woodLabel = new QLabel("<b style='font-size: 10pt; color: " + FirewoodStyles::EMBER_ORANGE + ";'>🪵 WOOD</b>", this);
+    auto *woodLabel = new QLabel("<b style='font-size: 9pt; color: " + FirewoodStyles::EMBER_ORANGE + ";'>🪵 WOOD</b>", this);
     inventoryLayout->addWidget(woodLabel);
+    inventoryLayout->addSpacing(4);
     
     auto *woodGrid = new QGridLayout();
     woodGrid->setSpacing(6);
-    woodGrid->setContentsMargins(0, 2, 0, 2);
+    woodGrid->setContentsMargins(10, 0, 10, 0);
     
     // Wood - Split
     auto *splitLabel = new QLabel("<b>Split:</b>", this);
-    splitLabel->setStyleSheet("font-size: 9pt;");
-    auto *splitValue = new QLabel("12.5 cords", this);
-    splitValue->setStyleSheet("font-size: 11pt; font-weight: bold; color: " + FirewoodStyles::SUCCESS_GREEN + ";");
+    splitLabel->setStyleSheet("font-size: 8pt;");
+    splitLabel->setMinimumWidth(65);
+    splitLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
+    m_splitWoodLabel = new QLabel("Loading...", this);
+    m_splitWoodLabel->setTextFormat(Qt::RichText);
+    m_splitWoodLabel->setStyleSheet("font-size: 9pt; font-weight: bold; color: " + FirewoodStyles::SUCCESS_GREEN + ";");
+    m_splitWoodLabel->setMinimumWidth(140);
+    m_splitWoodLabel->setWordWrap(true);
+    m_splitWoodLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    m_splitWoodLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     woodGrid->addWidget(splitLabel, 0, 0);
-    woodGrid->addWidget(splitValue, 0, 1);
+    woodGrid->addWidget(m_splitWoodLabel, 0, 1);
     
     // Wood - Not Split
     auto *unsplitLabel = new QLabel("<b>Rounds:</b>", this);
-    unsplitLabel->setStyleSheet("font-size: 9pt;");
-    auto *unsplitValue = new QLabel("8.0 cords", this);
-    unsplitValue->setStyleSheet("font-size: 11pt; font-weight: bold; color: " + FirewoodStyles::WARNING_AMBER + ";");
+    unsplitLabel->setStyleSheet("font-size: 8pt;");
+    unsplitLabel->setMinimumWidth(65);
+    unsplitLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
+    m_roundsWoodLabel = new QLabel("Loading...", this);
+    m_roundsWoodLabel->setTextFormat(Qt::RichText);
+    m_roundsWoodLabel->setStyleSheet("font-size: 9pt; font-weight: bold; color: " + FirewoodStyles::WARNING_AMBER + ";");
+    m_roundsWoodLabel->setMinimumWidth(140);
+    m_roundsWoodLabel->setWordWrap(false);
+    m_roundsWoodLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    m_roundsWoodLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     woodGrid->addWidget(unsplitLabel, 1, 0);
-    woodGrid->addWidget(unsplitValue, 1, 1);
+    woodGrid->addWidget(m_roundsWoodLabel, 1, 1);
+    
+    // Set column stretch to prevent label compression
+    woodGrid->setColumnStretch(0, 0);  // Fixed width for labels
+    woodGrid->setColumnStretch(1, 1);  // Expandable for values
     
     inventoryLayout->addLayout(woodGrid);
+    inventoryLayout->addSpacing(8);
     inventoryLayout->addWidget(createSeparator());
+    inventoryLayout->addSpacing(8);
     
     // Gas Section
-    auto *gasLabel = new QLabel("<b style='font-size: 10pt; color: " + FirewoodStyles::EMBER_ORANGE + ";'>⛽ GAS</b>", this);
+    auto *gasLabel = new QLabel("<b style='font-size: 9pt; color: " + FirewoodStyles::EMBER_ORANGE + ";'>⛽ GAS</b>", this);
     inventoryLayout->addWidget(gasLabel);
+    inventoryLayout->addSpacing(4);
     
     auto *gasGrid = new QGridLayout();
     gasGrid->setSpacing(6);
-    gasGrid->setContentsMargins(0, 2, 0, 2);
+    gasGrid->setContentsMargins(10, 0, 10, 0);
     
     auto *regularGasLabel = new QLabel("<b>Regular:</b>", this);
-    regularGasLabel->setStyleSheet("font-size: 9pt;");
-    auto *regularGasValue = new QLabel("5 gal", this);
-    regularGasValue->setStyleSheet("font-size: 11pt; font-weight: bold; color: " + FirewoodStyles::SUCCESS_GREEN + ";");
+    regularGasLabel->setStyleSheet("font-size: 8pt;");
+    regularGasLabel->setMinimumWidth(65);
+    regularGasLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
+    m_regularGasLabel = new QLabel("Loading...", this);
+    m_regularGasLabel->setStyleSheet("font-size: 9pt; font-weight: bold; color: " + FirewoodStyles::SUCCESS_GREEN + ";");
+    m_regularGasLabel->setMinimumWidth(100);
+    m_regularGasLabel->setWordWrap(false);
+    m_regularGasLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    m_regularGasLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     gasGrid->addWidget(regularGasLabel, 0, 0);
-    gasGrid->addWidget(regularGasValue, 0, 1);
+    gasGrid->addWidget(m_regularGasLabel, 0, 1);
     
     auto *mixedGasLabel = new QLabel("<b>Mixed:</b>", this);
-    mixedGasLabel->setStyleSheet("font-size: 9pt;");
-    auto *mixedGasValue = new QLabel("3 gal", this);
-    mixedGasValue->setStyleSheet("font-size: 11pt; font-weight: bold; color: " + FirewoodStyles::WARNING_AMBER + ";");
+    mixedGasLabel->setStyleSheet("font-size: 8pt;");
+    mixedGasLabel->setMinimumWidth(65);
+    mixedGasLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
+    m_mixedGasLabel = new QLabel("Loading...", this);
+    m_mixedGasLabel->setStyleSheet("font-size: 9pt; font-weight: bold; color: " + FirewoodStyles::WARNING_AMBER + ";");
+    m_mixedGasLabel->setMinimumWidth(100);
+    m_mixedGasLabel->setWordWrap(false);
+    m_mixedGasLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    m_mixedGasLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     gasGrid->addWidget(mixedGasLabel, 1, 0);
-    gasGrid->addWidget(mixedGasValue, 1, 1);
+    gasGrid->addWidget(m_mixedGasLabel, 1, 1);
+    
+    // Set column stretch to prevent label compression
+    gasGrid->setColumnStretch(0, 0);  // Fixed width for labels
+    gasGrid->setColumnStretch(1, 1);  // Expandable for values
     
     inventoryLayout->addLayout(gasGrid);
+    inventoryLayout->addSpacing(8);
     inventoryLayout->addWidget(createSeparator());
+    inventoryLayout->addSpacing(8);
     
     // Saws Section
-    auto *sawsLabel = new QLabel("<b style='font-size: 10pt; color: " + FirewoodStyles::EMBER_ORANGE + ";'>🪚 SAWS</b>", this);
+    auto *sawsLabel = new QLabel("<b style='font-size: 9pt; color: " + FirewoodStyles::EMBER_ORANGE + ";'>🪚 SAWS</b>", this);
     inventoryLayout->addWidget(sawsLabel);
+    inventoryLayout->addSpacing(4);
     
-    auto *sawsValue = new QLabel("6 operational", this);
-    sawsValue->setStyleSheet("font-size: 11pt; font-weight: bold; color: " + FirewoodStyles::SUCCESS_GREEN + "; padding-left: 15px;");
-    inventoryLayout->addWidget(sawsValue);
+    m_sawsLabel = new QLabel("Loading...", this);
+    m_sawsLabel->setStyleSheet("font-size: 9pt; font-weight: bold; color: " + FirewoodStyles::SUCCESS_GREEN + "; padding-left: 10px;");
+    m_sawsLabel->setMinimumWidth(140);
+    m_sawsLabel->setWordWrap(false);
+    m_sawsLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    inventoryLayout->addWidget(m_sawsLabel);
     
     inventoryLayout->addStretch();
     
@@ -474,13 +533,17 @@ void DashboardWidget::loadStatistics()
     QDate monthStart = QDate(today.year(), today.month(), 1);
     QDate yearStart = QDate(today.year(), 1, 1);
     
-    // === TOTAL HOUSEHOLDS ===
+    // === TOTAL HOUSEHOLDS SERVED ===
+    // Count distinct households that have received completed deliveries
     QSqlQuery householdQuery;
-    if (householdQuery.exec("SELECT COUNT(*) FROM households WHERE active = 1")) {
+    if (householdQuery.exec("SELECT COUNT(DISTINCT household_id) FROM orders WHERE status = 'Completed'")) {
         if (householdQuery.next()) {
             int totalHouseholds = householdQuery.value(0).toInt();
             m_totalHouseholdsLabel->setText(QString::number(totalHouseholds));
         }
+    } else {
+        qDebug() << "Error loading households served:" << householdQuery.lastError().text();
+        m_totalHouseholdsLabel->setText("0");
     }
     
     // === WOOD DELIVERED ===
@@ -560,7 +623,7 @@ void DashboardWidget::loadUpcomingOrders()
 {
     // Load actual orders from database
     QSqlQuery query;
-    if (!query.exec("SELECT o.id, o.order_date, h.name, h.phone_number, o.requested_cords, o.status "
+    if (!query.exec("SELECT o.id, o.order_date, h.name, h.phone, o.requested_cords, o.status "
                    "FROM orders o "
                    "JOIN households h ON o.household_id = h.id "
                    "WHERE o.status IN ('Pending', 'Scheduled', 'In Progress') "
@@ -682,6 +745,206 @@ void DashboardWidget::updateMonthlyCalendar()
     
     m_monthlyCalendar->setDateTextFormat(today, format);
     
-    qDebug() << "Updated monthly calendar";
+    qDebug() << "Updated monthly calendar"; 
+}
+
+void DashboardWidget::refreshData()
+{
+    qDebug() << "Refreshing all dashboard data...";
+    
+    // Reload all data
+    if (Authorization::isAdmin(m_userInfo.role) || Authorization::isLead(m_userInfo.role)) {
+        loadStatistics();
+    }
+    loadUpcomingOrders();
+    loadCurrentInventory();
+    loadInventoryAtAGlance();
+    loadEmergencies();
+    loadLowInventory();
+    updateMonthlyCalendar();
+    checkInventoryAlerts();
+    
+    qDebug() << "Dashboard data refreshed!";
+}
+
+void DashboardWidget::loadInventoryAtAGlance()
+{
+    qDebug() << "Loading inventory at-a-glance...";
+    
+    // Query for Split Wood
+    QSqlQuery splitQuery;
+    splitQuery.prepare("SELECT COALESCE(SUM(quantity), 0) FROM inventory_items WHERE item_name LIKE '%Split%' OR item_name LIKE '%split%'");
+    double splitCords = 0.0;
+    if (splitQuery.exec() && splitQuery.next()) {
+        splitCords = splitQuery.value(0).toDouble();
+    } else {
+        qDebug() << "Error loading split wood:" << splitQuery.lastError().text();
+    }
+    
+    // Query for Rounds/Unsplit Wood
+    QSqlQuery roundsQuery;
+    roundsQuery.prepare("SELECT COALESCE(SUM(quantity), 0) FROM inventory_items WHERE item_name LIKE '%Round%' OR item_name LIKE '%Unsplit%'");
+    double roundsCords = 0.0;
+    if (roundsQuery.exec() && roundsQuery.next()) {
+        roundsCords = roundsQuery.value(0).toDouble();
+    } else {
+        qDebug() << "Error loading rounds:" << roundsQuery.lastError().text();
+    }
+    
+    // Query for Regular Gas
+    QSqlQuery regularGasQuery;
+    regularGasQuery.prepare("SELECT COALESCE(SUM(quantity), 0) FROM inventory_items WHERE (item_name LIKE '%Gasoline%' OR item_name LIKE '%gasoline%' OR item_name LIKE '%Unmixed Gas%') AND item_name NOT LIKE '%Mix%' AND item_name NOT LIKE '%2-Cycle%'");
+    double regularGas = 0.0;
+    if (regularGasQuery.exec() && regularGasQuery.next()) {
+        regularGas = regularGasQuery.value(0).toDouble();
+    } else {
+        qDebug() << "Error loading regular gas:" << regularGasQuery.lastError().text();
+    }
+    
+    // Query for Mixed/2-Cycle Gas
+    QSqlQuery mixedGasQuery;
+    mixedGasQuery.prepare("SELECT COALESCE(SUM(quantity), 0) FROM inventory_items WHERE item_name LIKE '%Mix%' OR item_name LIKE '%2-Cycle%' OR item_name LIKE '%Mixed Gas%'");
+    double mixedGas = 0.0;
+    if (mixedGasQuery.exec() && mixedGasQuery.next()) {
+        mixedGas = mixedGasQuery.value(0).toDouble();
+    } else {
+        qDebug() << "Error loading mixed gas:" << mixedGasQuery.lastError().text();
+    }
+    
+    // Query for operational Chainsaws
+    QSqlQuery sawsQuery;
+    sawsQuery.prepare("SELECT COALESCE(SUM(quantity), 0) FROM inventory_items WHERE item_name LIKE '%Chainsaw%' AND item_name NOT LIKE '%Chain%'");
+    int saws = 0;
+    if (sawsQuery.exec() && sawsQuery.next()) {
+        saws = sawsQuery.value(0).toInt();
+    } else {
+        qDebug() << "Error loading chainsaws:" << sawsQuery.lastError().text();
+    }
+    
+    // Compute tentative split wood after fulfilling all open orders
+    double openRequested = 0.0;
+    {
+        QSqlQuery openQ;
+        openQ.prepare("SELECT COALESCE(SUM(requested_cords - delivered_cords), 0) FROM orders WHERE status IN ('Pending','Scheduled','In Progress')");
+        if (openQ.exec() && openQ.next()) {
+            openRequested = openQ.value(0).toDouble();
+        } else {
+            qDebug() << "Error loading open order requests:" << openQ.lastError().text();
+        }
+    }
+    double tentativeSplit = splitCords - openRequested;
+    if (tentativeSplit < 0) tentativeSplit = 0.0;
+
+    // Update labels
+    if (m_splitWoodLabel) {
+        m_splitWoodLabel->setText(
+            QString("<span style='color:%1'>%2 cords</span> <span style='color:%3'>(true)</span>"
+                    " &nbsp; | &nbsp; "
+                    "<span style='color:%4'>%5</span> <span style='color:%3'>tentative</span>")
+                .arg(FirewoodStyles::SUCCESS_GREEN)
+                .arg(splitCords, 0, 'f', 1)
+                .arg(FirewoodStyles::CHARCOAL)
+                .arg(FirewoodStyles::FOREST_GREEN)
+                .arg(tentativeSplit, 0, 'f', 1));
+    }
+    if (m_roundsWoodLabel) {
+        m_roundsWoodLabel->setText(QString("%1 cords").arg(roundsCords, 0, 'f', 1));
+    }
+    if (m_regularGasLabel) {
+        m_regularGasLabel->setText(QString("%1 gal").arg(regularGas, 0, 'f', 1));
+    }
+    if (m_mixedGasLabel) {
+        m_mixedGasLabel->setText(QString("%1 gal").arg(mixedGas, 0, 'f', 1));
+    }
+    if (m_sawsLabel) {
+        m_sawsLabel->setText(QString("%1 operational").arg(saws));
+    }
+    
+    qDebug() << "Inventory loaded: Split=" << splitCords << ", Rounds=" << roundsCords 
+             << ", RegGas=" << regularGas << ", MixGas=" << mixedGas << ", Saws=" << saws;
+}
+
+void DashboardWidget::checkInventoryAlerts()
+{
+    qDebug() << "Checking inventory alerts...";
+    
+    // Remove existing alerts widget if it exists
+    if (m_inventoryAlertsWidget) {
+        m_inventoryAlertsWidget->deleteLater();
+        m_inventoryAlertsWidget = nullptr;
+    }
+    
+    // Query for items that are low or critical
+    QSqlQuery query;
+    query.exec("SELECT item_name, quantity, unit, reorder_level, emergency_level "
+               "FROM inventory_items "
+               "WHERE (reorder_level > 0 AND quantity <= reorder_level) "
+               "OR (emergency_level > 0 AND quantity <= emergency_level) "
+               "ORDER BY quantity ASC");
+    
+    QStringList alerts;
+    QStringList criticalAlerts;
+    
+    while (query.next()) {
+        QString itemName = query.value(0).toString();
+        double quantity = query.value(1).toDouble();
+        QString unit = query.value(2).toString();
+        double reorderLevel = query.value(3).toDouble();
+        double emergencyLevel = query.value(4).toDouble();
+        
+        QString alertText = QString("%1: %2 %3 remaining").arg(itemName).arg(quantity).arg(unit);
+        
+        if (emergencyLevel > 0 && quantity <= emergencyLevel) {
+            criticalAlerts << QString("🚨 CRITICAL: %1").arg(alertText);
+        } else if (reorderLevel > 0 && quantity <= reorderLevel) {
+            alerts << QString("⚠️ LOW: %1").arg(alertText);
+        }
+    }
+    
+    // Only create alerts widget if there are alerts
+    if (!alerts.isEmpty() || !criticalAlerts.isEmpty()) {
+        m_inventoryAlertsWidget = new QWidget(this);
+        auto *alertLayout = new QVBoxLayout(m_inventoryAlertsWidget);
+        
+        // Style the alert widget
+        m_inventoryAlertsWidget->setStyleSheet(
+            "QWidget { "
+            "  background-color: #ffebe0; "
+            "  border: 2px solid #ff6b35; "
+            "  border-radius: 8px; "
+            "  padding: 10px; "
+            "  margin: 5px; "
+            "}"
+        );
+        
+        // Add title
+        auto *titleLabel = new QLabel("⚠️ INVENTORY ALERTS", m_inventoryAlertsWidget);
+        titleLabel->setStyleSheet("font-weight: bold; color: #ff6b35; font-size: 12pt;");
+        titleLabel->setAlignment(Qt::AlignCenter);
+        alertLayout->addWidget(titleLabel);
+        
+        // Add critical alerts first
+        for (const QString &alert : criticalAlerts) {
+            auto *alertLabel = new QLabel(alert, m_inventoryAlertsWidget);
+            alertLabel->setStyleSheet("color: #c1421e; font-weight: bold;");
+            alertLayout->addWidget(alertLabel);
+        }
+        
+        // Add regular alerts
+        for (const QString &alert : alerts) {
+            auto *alertLabel = new QLabel(alert, m_inventoryAlertsWidget);
+            alertLabel->setStyleSheet("color: #d97732;");
+            alertLayout->addWidget(alertLabel);
+        }
+        
+        // Add the alerts widget to the main layout
+        // Find the main layout and insert the alerts at the top
+        QVBoxLayout *mainLayout = qobject_cast<QVBoxLayout*>(layout());
+        if (mainLayout) {
+            mainLayout->insertWidget(1, m_inventoryAlertsWidget); // Insert after header
+        }
+        
+        qDebug() << "Created inventory alerts widget with" << (alerts.size() + criticalAlerts.size()) << "alerts";
+    }
 }
 
