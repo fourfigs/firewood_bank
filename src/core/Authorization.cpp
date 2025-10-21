@@ -2,18 +2,18 @@
 
 namespace firewood::core {
 
-bool Authorization::hasPermission(const QString &role, Permission permission)
+bool Authorization::hasPermission(const QString &userType, Permission permission)
 {
-    QString roleLower = role.toLower();
+    QString typeLower = userType.toLower();
     
     // Admin has all permissions
-    if (roleLower == "admin") {
+    if (typeLower == "admin") {
         return true;
     }
     
     // Lead permissions (between Admin and Employee)
     // Leads can do everything except manage users and system settings
-    if (roleLower == "lead") {
+    if (typeLower == "lead") {
         switch (permission) {
             case Permission::ManageUsers:
             case Permission::ManageSystemSettings:
@@ -36,9 +36,9 @@ bool Authorization::hasPermission(const QString &role, Permission permission)
         }
     }
     
-    // Employee/User permissions
+    // Employee permissions
     // NOTE: Employees can VIEW inventory but NOT EDIT
-    if (roleLower == "employee" || roleLower == "user") {
+    if (typeLower == "employee") {
         switch (permission) {
             case Permission::ViewClients:
             case Permission::EditClients:
@@ -54,39 +54,69 @@ bool Authorization::hasPermission(const QString &role, Permission permission)
         }
     }
     
-    // Volunteer permissions (very restricted)
-    if (roleLower == "volunteer") {
+    // Volunteer permissions (can be both client and volunteer)
+    if (typeLower == "volunteer") {
         switch (permission) {
             case Permission::ViewOwnInfo:
             case Permission::EditOwnInfo:
+            case Permission::ViewClients:  // Can view client info (including their own)
                 return true;
             default:
                 return false;
         }
     }
     
+    // Client permissions (very restricted - no login access)
+    if (typeLower == "client") {
+        return false;  // Clients cannot login, so no permissions
+    }
+    
     return false;
 }
 
-bool Authorization::isAdmin(const QString &role)
+bool Authorization::isAdmin(const QString &userType)
 {
-    return role.toLower() == "admin";
+    return userType.toLower() == "admin";
 }
 
-bool Authorization::isLead(const QString &role)
+bool Authorization::isLead(const QString &userType)
 {
-    return role.toLower() == "lead";
+    return userType.toLower() == "lead";
 }
 
-bool Authorization::isEmployee(const QString &role)
+bool Authorization::isEmployee(const QString &userType)
 {
-    QString roleLower = role.toLower();
-    return roleLower == "employee" || roleLower == "user";
+    return userType.toLower() == "employee";
 }
 
-bool Authorization::isVolunteer(const QString &role)
+bool Authorization::isVolunteer(const QString &userType)
 {
-    return role.toLower() == "volunteer";
+    return userType.toLower() == "volunteer";
+}
+
+bool Authorization::isClient(const QString &userType)
+{
+    return userType.toLower() == "client";
+}
+
+bool Authorization::canLogin(const QString &userType)
+{
+    QString typeLower = userType.toLower();
+    // Only admin, lead, employee, and volunteer can login
+    // Clients cannot login (they don't have usernames/passwords)
+    return typeLower == "admin" || typeLower == "lead" || 
+           typeLower == "employee" || typeLower == "volunteer";
+}
+
+QString Authorization::getUserTypeDisplayName(const QString &userType)
+{
+    QString typeLower = userType.toLower();
+    if (typeLower == "admin") return "Administrator";
+    if (typeLower == "lead") return "Team Lead";
+    if (typeLower == "employee") return "Employee";
+    if (typeLower == "volunteer") return "Volunteer";
+    if (typeLower == "client") return "Client";
+    return userType; // Return original if unknown
 }
 
 QString Authorization::getPermissionDescription(Permission permission)

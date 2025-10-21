@@ -210,4 +210,170 @@ void WorkOrderDialog::onNewClientClicked()
   }
 }
 
+void WorkOrderDialog::loadOrder()
+{
+    if (m_orderId <= 0) {
+        // New order - set defaults
+        m_orderDateEdit->setDate(QDate::currentDate());
+        m_requestedCordsEdit->setValue(0);
+        m_deliveredCordsEdit->setValue(0);
+        m_statusCombo->setCurrentText("New");
+        m_priorityCombo->setCurrentText("Normal");
+        m_deliveryDateEdit->setDate(QDate::currentDate());
+        m_paymentMethodCombo->setCurrentText("Cash");
+        m_amountPaidEdit->setValue(0);
+        m_assignedDriverEdit->clear();
+        m_deliveryAddressEdit->clear();
+        m_deliveryNotesEdit->clear();
+        m_notesEdit->clear();
+        return;
+    }
+
+    // Load existing order
+    QSqlDatabase db = QSqlDatabase::database();
+    QSqlQuery query(db);
+    query.prepare("SELECT * FROM orders WHERE id = :id");
+    query.bindValue(":id", m_orderId);
+    
+    if (!query.exec()) {
+        qDebug() << "ERROR: Failed to load order:" << query.lastError().text();
+        return;
+    }
+    
+    if (query.next()) {
+        m_orderDateEdit->setDate(query.value("order_date").toDate());
+        m_requestedCordsEdit->setValue(query.value("requested_amount").toDouble());
+        m_deliveredCordsEdit->setValue(query.value("delivered_amount").toDouble());
+        m_statusCombo->setCurrentText(query.value("status").toString());
+        m_priorityCombo->setCurrentText(query.value("priority").toString());
+        m_deliveryDateEdit->setDate(query.value("delivery_date").toDate());
+        m_paymentMethodCombo->setCurrentText(query.value("payment_method").toString());
+        m_amountPaidEdit->setValue(query.value("amount").toDouble());
+        m_assignedDriverEdit->setText(query.value("driver").toString());
+        m_deliveryAddressEdit->setText(query.value("delivery_address").toString());
+        m_deliveryNotesEdit->setText(query.value("delivery_notes").toString());
+        m_notesEdit->setText(query.value("notes").toString());
+        
+        // Set client
+        int clientId = query.value("household_id").toInt();
+        int index = m_clientCombo->findData(clientId);
+        if (index != -1) {
+            m_clientCombo->setCurrentIndex(index);
+        }
+    }
+}
+
+void WorkOrderDialog::loadClients()
+{
+    m_clientCombo->clear();
+    
+    QSqlDatabase db = QSqlDatabase::database();
+    QSqlQuery query(db);
+    query.prepare("SELECT id, full_name FROM users WHERE user_type IN ('client', 'volunteer') ORDER BY full_name");
+    
+    if (!query.exec()) {
+        qDebug() << "ERROR: Failed to load clients:" << query.lastError().text();
+        return;
+    }
+    
+    while (query.next()) {
+        int id = query.value(0).toInt();
+        QString name = query.value(1).toString();
+        m_clientCombo->addItem(name, id);
+    }
+}
+
+void WorkOrderDialog::saveOrder()
+{
+    if (m_clientCombo->currentIndex() == -1) {
+        QMessageBox::warning(this, "Form Error", "Please select a client.");
+        return;
+    }
+    
+    int clientId = m_clientCombo->currentData().toInt();
+    QDate orderDate = m_orderDateEdit->date();
+    double requestedAmount = m_requestedCordsEdit->value();
+    double deliveredAmount = m_deliveredCordsEdit->value();
+    QString status = m_statusCombo->currentText();
+    QString priority = m_priorityCombo->currentText();
+    QDate deliveryDate = m_deliveryDateEdit->date();
+    QString paymentMethod = m_paymentMethodCombo->currentText();
+    double amount = m_amountPaidEdit->value();
+    QString driver = m_assignedDriverEdit->text();
+    QString deliveryAddress = m_deliveryAddressEdit->text();
+    QString deliveryNotes = m_deliveryNotesEdit->toPlainText();
+    QString notes = m_notesEdit->toPlainText();
+    
+    QSqlDatabase db = QSqlDatabase::database();
+    QSqlQuery query(db);
+    
+    if (m_orderId <= 0) {
+        // Insert new order
+        query.prepare("INSERT INTO orders (household_id, order_date, requested_amount, delivered_amount, status, priority, delivery_date, payment_method, amount, driver, delivery_address, delivery_notes, notes, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        query.bindValue(0, clientId);
+        query.bindValue(1, orderDate);
+        query.bindValue(2, requestedAmount);
+        query.bindValue(3, deliveredAmount);
+        query.bindValue(4, status);
+        query.bindValue(5, priority);
+        query.bindValue(6, deliveryDate);
+        query.bindValue(7, paymentMethod);
+        query.bindValue(8, amount);
+        query.bindValue(9, driver);
+        query.bindValue(10, deliveryAddress);
+        query.bindValue(11, deliveryNotes);
+        query.bindValue(12, notes);
+        query.bindValue(13, "System"); // TODO: Get actual user
+        query.bindValue(14, QDateTime::currentDateTime());
+    } else {
+        // Update existing order
+        query.prepare("UPDATE orders SET household_id = ?, order_date = ?, requested_amount = ?, delivered_amount = ?, status = ?, priority = ?, delivery_date = ?, payment_method = ?, amount = ?, driver = ?, delivery_address = ?, delivery_notes = ?, notes = ?, updated_at = ? WHERE id = ?");
+        query.bindValue(0, clientId);
+        query.bindValue(1, orderDate);
+        query.bindValue(2, requestedAmount);
+        query.bindValue(3, deliveredAmount);
+        query.bindValue(4, status);
+        query.bindValue(5, priority);
+        query.bindValue(6, deliveryDate);
+        query.bindValue(7, paymentMethod);
+        query.bindValue(8, amount);
+        query.bindValue(9, driver);
+        query.bindValue(10, deliveryAddress);
+        query.bindValue(11, deliveryNotes);
+        query.bindValue(12, notes);
+        query.bindValue(13, QDateTime::currentDateTime());
+        query.bindValue(14, m_orderId);
+    }
+    
+    if (!query.exec()) {
+        qDebug() << "ERROR: Failed to save order:" << query.lastError().text();
+        QMessageBox::critical(this, "Database Error", "Failed to save order: " + query.lastError().text());
+        return;
+    }
+    
+    if (m_orderId <= 0) {
+        m_orderId = query.lastInsertId().toInt();
+        qDebug() << "Order created with ID:" << m_orderId;
+    } else {
+        qDebug() << "Order updated with ID:" << m_orderId;
+    }
+    
+    accept();
+}
+
+void WorkOrderDialog::onStatusChanged(const QString &status)
+{
+    // Enable/disable fields based on status
+    bool isCompleted = (status == "Completed");
+    bool isDelivered = (status == "Delivered" || status == "Completed");
+    
+    m_deliveredCordsEdit->setEnabled(isDelivered);
+    m_deliveryDateEdit->setEnabled(isDelivered);
+    m_assignedDriverEdit->setEnabled(isDelivered);
+    m_deliveryAddressEdit->setEnabled(isDelivered);
+    m_deliveryNotesEdit->setEnabled(isDelivered);
+    m_paymentMethodCombo->setEnabled(isCompleted);
+    m_amountPaidEdit->setEnabled(isCompleted);
+}
+
 // ... rest of WorkOrderDialog.cpp ...

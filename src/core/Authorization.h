@@ -34,29 +34,44 @@ public:
     };
     
     /**
-     * @brief Check if a role has a specific permission
+     * @brief Check if a user type has a specific permission
      */
-    static bool hasPermission(const QString &role, Permission permission);
+    static bool hasPermission(const QString &userType, Permission permission);
     
     /**
-     * @brief Check if user is admin
+     * @brief Check if user type is admin
      */
-    static bool isAdmin(const QString &role);
+    static bool isAdmin(const QString &userType);
     
     /**
-     * @brief Check if user is lead
+     * @brief Check if user type is lead
      */
-    static bool isLead(const QString &role);
+    static bool isLead(const QString &userType);
     
     /**
-     * @brief Check if user is employee
+     * @brief Check if user type is employee
      */
-    static bool isEmployee(const QString &role);
+    static bool isEmployee(const QString &userType);
     
     /**
-     * @brief Check if user is volunteer
+     * @brief Check if user type is volunteer
      */
-    static bool isVolunteer(const QString &role);
+    static bool isVolunteer(const QString &userType);
+    
+    /**
+     * @brief Check if user type is client
+     */
+    static bool isClient(const QString &userType);
+    
+    /**
+     * @brief Check if user can login (has username/password)
+     */
+    static bool canLogin(const QString &userType);
+    
+    /**
+     * @brief Get display name for user type
+     */
+    static QString getUserTypeDisplayName(const QString &userType);
     
     /**
      * @brief Get user-friendly permission description

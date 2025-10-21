@@ -13,7 +13,7 @@ class MainWindow : public QMainWindow {
 
 public:
     explicit MainWindow(const QString &username, const QString &fullName, 
-                       const QString &role, QWidget *parent = nullptr);
+                       const QString &userType, QWidget *parent = nullptr);
     ~MainWindow() = default;
 
 signals:
@@ -65,7 +65,7 @@ private:
     // User info
     QString m_username;
     QString m_fullName;
-    QString m_role;
+    QString m_userType;
     QString m_contactNumber;
     QString m_email;
     

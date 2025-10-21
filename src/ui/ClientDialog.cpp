@@ -358,7 +358,7 @@ void ClientDialog::loadOrderHistory() {
   m_orderHistoryModel->setFilter(QString("household_id = %1").arg(m_clientId));
   m_orderHistoryModel->select();
 
-  m_orderHistoryModel->setHeaderData(m_orderHistoryModel->fieldIndex("date_received"), Qt::Horizontal, "Order Date");
+  m_orderHistoryModel->setHeaderData(m_orderHistoryModel->fieldIndex("order_date"), Qt::Horizontal, "Order Date");
   m_orderHistoryModel->setHeaderData(m_orderHistoryModel->fieldIndex("delivered_cords"), Qt::Horizontal, "Cords Delivered");
   m_orderHistoryModel->setHeaderData(m_orderHistoryModel->fieldIndex("status"), Qt::Horizontal, "Status");
   m_orderHistoryModel->setHeaderData(m_orderHistoryModel->fieldIndex("priority"), Qt::Horizontal, "Priority");

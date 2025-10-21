@@ -428,6 +428,26 @@ const QString FORM_LABELS =
     "   padding: 2px 0px; "
     "}";
 
+// Text Edit style (for multi-line text input)
+const QString TEXT_EDIT = 
+    "QTextEdit { "
+    "   border: 2px solid " + ASH_GRAY + "; "
+    "   border-radius: 5px; "
+    "   padding: 8px 12px; "
+    "   background: white; "
+    "   color: " + CHARCOAL + "; "
+    "   font-size: 11pt; "
+    "   min-height: 60px; "
+    "} "
+    "QTextEdit:focus { "
+    "   border-color: " + EMBER_ORANGE + "; "
+    "   border-width: 2px; "
+    "} "
+    "QTextEdit:disabled { "
+    "   background: " + SMOKE_WHITE + "; "
+    "   color: " + ASH_GRAY + "; "
+    "}";
+
 // Organization Header (for WorkOrderDialog)
 const QString ORG_HEADER = 
     "QLabel.orgHeader { "
@@ -455,6 +475,7 @@ const QString APPLICATION_STYLE =
     GROUP_BOX_URGENT + 
     TAB_WIDGET + 
     LINE_EDIT + 
+    TEXT_EDIT + 
     COMBO_BOX + 
     LABEL_HEADER + 
     LABEL_SUBHEADER + 

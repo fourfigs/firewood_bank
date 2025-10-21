@@ -868,6 +868,150 @@ static void runMigrations(QSqlDatabase &db) {
         qDebug() << "Migration 11 completed successfully";
     }
     
+    // Migration 12: Unified User System - Consolidate users and households
+    if (version < 12) {
+        qDebug() << "Running migration 12: Creating unified user system...";
+        
+        // First, add new columns to users table to support all household data
+        QStringList userColumns = {
+            "ALTER TABLE users ADD COLUMN address TEXT;",
+            "ALTER TABLE users ADD COLUMN mailing_address TEXT;",
+            "ALTER TABLE users ADD COLUMN gate_code TEXT;",
+            "ALTER TABLE users ADD COLUMN stove_size TEXT;",
+            "ALTER TABLE users ADD COLUMN is_volunteer INTEGER DEFAULT 0;",
+            "ALTER TABLE users ADD COLUMN waiver_signed INTEGER DEFAULT 0;",
+            "ALTER TABLE users ADD COLUMN has_license INTEGER DEFAULT 0;",
+            "ALTER TABLE users ADD COLUMN has_working_vehicle INTEGER DEFAULT 0;",
+            "ALTER TABLE users ADD COLUMN works_for_wood INTEGER DEFAULT 0;",
+            "ALTER TABLE users ADD COLUMN wood_credit_received REAL DEFAULT 0;",
+            "ALTER TABLE users ADD COLUMN credit_balance REAL DEFAULT 0;",
+            "ALTER TABLE users ADD COLUMN last_volunteer_date TEXT;",
+            "ALTER TABLE users ADD COLUMN order_count INTEGER DEFAULT 0;",
+            "ALTER TABLE users ADD COLUMN last_order_date TEXT;"
+        };
+        
+        for (const QString &sql : userColumns) {
+            if (!query.exec(sql)) {
+                qDebug() << "Note: Could not add user column (may already exist):" << query.lastError().text();
+            }
+        }
+        
+        // Add user_type column and update existing users
+        if (!query.exec("ALTER TABLE users ADD COLUMN user_type TEXT DEFAULT 'client';")) {
+            qDebug() << "Note: Could not add user_type column (may already exist):" << query.lastError().text();
+        }
+        
+        // Update existing users to have proper user_type based on role
+        QStringList roleUpdates = {
+            "UPDATE users SET user_type = 'admin' WHERE role = 'admin';",
+            "UPDATE users SET user_type = 'lead' WHERE role = 'lead';",
+            "UPDATE users SET user_type = 'employee' WHERE role = 'employee' OR role = 'user';",
+            "UPDATE users SET user_type = 'volunteer' WHERE role = 'volunteer';"
+        };
+        
+        for (const QString &updateSql : roleUpdates) {
+            if (!query.exec(updateSql)) {
+                qDebug() << "Warning: Failed to update user type:" << query.lastError().text();
+            }
+        }
+        
+        // Migrate household data to users table
+        QSqlQuery migrateHouseholds(db);
+        if (migrateHouseholds.exec("SELECT * FROM households")) {
+            while (migrateHouseholds.next()) {
+                int householdId = migrateHouseholds.value(0).toInt();
+                QString name = migrateHouseholds.value(1).toString();
+                QString address = migrateHouseholds.value(2).toString();
+                QString phone = migrateHouseholds.value(3).toString();
+                QString notes = migrateHouseholds.value(4).toString();
+                QString createdAt = migrateHouseholds.value(5).toString();
+                
+                // Check if a user already exists with this name/phone
+                QSqlQuery checkUser(db);
+                checkUser.prepare("SELECT id FROM users WHERE full_name = :name OR phone = :phone");
+                checkUser.bindValue(":name", name);
+                checkUser.bindValue(":phone", phone);
+                
+                if (checkUser.exec() && checkUser.next()) {
+                    // User exists, update with household data
+                    int userId = checkUser.value(0).toInt();
+                    QSqlQuery updateUser(db);
+                    updateUser.prepare("UPDATE users SET address = :address, phone = :phone, user_type = 'client' WHERE id = :id");
+                    updateUser.bindValue(":address", address);
+                    updateUser.bindValue(":phone", phone);
+                    updateUser.bindValue(":id", userId);
+                    
+                    if (!updateUser.exec()) {
+                        qDebug() << "Warning: Failed to update user with household data:" << updateUser.lastError().text();
+                    }
+                } else {
+                    // Create new user from household
+                    QSqlQuery insertUser(db);
+                    insertUser.prepare("INSERT INTO users (full_name, address, phone, user_type, active, created_at) "
+                                      "VALUES (:name, :address, :phone, 'client', 1, :created_at)");
+                    insertUser.bindValue(":name", name);
+                    insertUser.bindValue(":address", address);
+                    insertUser.bindValue(":phone", phone);
+                    insertUser.bindValue(":created_at", createdAt);
+                    
+                    if (!insertUser.exec()) {
+                        qDebug() << "Warning: Failed to insert user from household:" << insertUser.lastError().text();
+                    }
+                }
+            }
+        }
+        
+        // Create mapping table to track household_id -> user_id relationships
+        if (!query.exec("CREATE TABLE IF NOT EXISTS household_user_mapping (\n"
+                       "  household_id INTEGER PRIMARY KEY,\n"
+                       "  user_id INTEGER NOT NULL,\n"
+                       "  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE\n"
+                       ");")) {
+            qDebug() << "ERROR: Failed to create household_user_mapping table:" << query.lastError().text();
+            db.rollback();
+            return;
+        }
+        
+        // Populate mapping table
+        QSqlQuery populateMapping(db);
+        if (populateMapping.exec("SELECT h.id, h.name, h.phone FROM households h")) {
+            while (populateMapping.next()) {
+                int householdId = populateMapping.value(0).toInt();
+                QString name = populateMapping.value(1).toString();
+                QString phone = populateMapping.value(2).toString();
+                
+                QSqlQuery findUser(db);
+                findUser.prepare("SELECT id FROM users WHERE full_name = :name OR phone = :phone LIMIT 1");
+                findUser.bindValue(":name", name);
+                findUser.bindValue(":phone", phone);
+                
+                if (findUser.exec() && findUser.next()) {
+                    int userId = findUser.value(0).toInt();
+                    
+                    QSqlQuery insertMapping(db);
+                    insertMapping.prepare("INSERT INTO household_user_mapping (household_id, user_id) VALUES (:household_id, :user_id)");
+                    insertMapping.bindValue(":household_id", householdId);
+                    insertMapping.bindValue(":user_id", userId);
+                    
+                    if (!insertMapping.exec()) {
+                        qDebug() << "Warning: Failed to insert household mapping:" << insertMapping.lastError().text();
+                    }
+                }
+            }
+        }
+        
+        qDebug() << "Unified user system created successfully";
+        
+        QSqlQuery up(db);
+        if (!up.exec("UPDATE schema_version SET version = 12;")) {
+            qDebug() << "ERROR: Failed to update schema version:" << up.lastError().text();
+            db.rollback();
+            return;
+        }
+        version = 12;
+        qDebug() << "Migration 12 completed successfully";
+    }
+    
     if (!db.commit()) {
         qDebug() << "ERROR: Failed to commit transaction:" << db.lastError().text();
         return;

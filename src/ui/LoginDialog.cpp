@@ -167,7 +167,7 @@ bool LoginDialog::validateCredentials(const QString &username, const QString &pa
     ).toHex();
     
     QSqlQuery query(db);
-    query.prepare("SELECT username, role FROM users WHERE username = :username AND password_hash = :password_hash AND active = 1");
+    query.prepare("SELECT username, user_type FROM users WHERE username = :username AND password_hash = :password_hash AND active = 1");
     query.bindValue(":username", username);
     query.bindValue(":password_hash", QString::fromLatin1(passwordHash));
     

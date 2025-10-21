@@ -49,8 +49,8 @@ using namespace firewood::core;
 
 
 MainWindow::MainWindow(const QString& username, const QString& fullName,
-  const QString& role, QWidget* parent)
-  : QMainWindow(parent), m_username(username), m_fullName(fullName), m_role(role)
+  const QString& userType, QWidget* parent)
+  : QMainWindow(parent), m_username(username), m_fullName(fullName), m_userType(userType)
 {
   qDebug() << "Creating MainWindow...";
 
@@ -72,7 +72,7 @@ MainWindow::MainWindow(const QString& username, const QString& fullName,
   // Setup keyboard shortcuts
   setupKeyboardShortcuts();
 
-  setWindowTitle(QString("Firewood Bank - %1 (%2)").arg(m_fullName).arg(m_role));
+  setWindowTitle(QString("Firewood Bank - %1 (%2)").arg(m_fullName).arg(m_userType));
 
   showMaximized();
 
@@ -110,7 +110,7 @@ void MainWindow::setupUI()
 
   m_tabs = tabs;
 
-  if (Authorization::isVolunteer(m_role)) {
+  if (Authorization::isVolunteer(m_userType)) {
     auto* volunteerProfile = new VolunteerProfileWidget(m_username, this);
     m_tabs->addTab(volunteerProfile, "👤 My Profile");
   }
@@ -118,7 +118,7 @@ void MainWindow::setupUI()
     UserInfo userInfo;
     userInfo.username = m_username;
     userInfo.fullName = m_fullName;
-    userInfo.role = m_role;
+    userInfo.role = m_userType;
     userInfo.contactNumber = m_contactNumber;
     userInfo.email = m_email;
 
@@ -139,15 +139,17 @@ void MainWindow::setupDatabaseModels()
     return;
   }
 
-  if (Authorization::isVolunteer(m_role)) {
+  if (Authorization::isVolunteer(m_userType)) {
     qDebug() << "Volunteer role - skipping admin/employee tabs";
     return;
   }
 
-  if (Authorization::hasPermission(m_role, Authorization::Permission::ViewClients)) {
+  if (Authorization::hasPermission(m_userType, Authorization::Permission::ViewClients)) {
     m_householdsModel = new QSqlTableModel(this, db);
-    m_householdsModel->setTable("households");
+    m_householdsModel->setTable("users");
     m_householdsModel->setEditStrategy(QSqlTableModel::OnFieldChange);
+    // Filter to show only clients and volunteers (people who can receive firewood)
+    m_householdsModel->setFilter("user_type IN ('client', 'volunteer')");
 
     if (!m_householdsModel->select()) {
       qDebug() << "ERROR: Failed to select households table:" << m_householdsModel->lastError().text();
@@ -165,9 +167,35 @@ void MainWindow::setupDatabaseModels()
     m_householdsView->setSortingEnabled(true);
     connect(m_householdsView, &QTableView::doubleClicked, this, &MainWindow::onClientDoubleClicked);
 
-    m_householdsModel->setHeaderData(1, Qt::Horizontal, "Name");
-    m_householdsModel->setHeaderData(2, Qt::Horizontal, "Phone");
-    m_householdsModel->setHeaderData(3, Qt::Horizontal, "Address");
+    // Set user-friendly column headers for users table
+    m_householdsModel->setHeaderData(4, Qt::Horizontal, "Name");        // full_name
+    m_householdsModel->setHeaderData(5, Qt::Horizontal, "Email");       // email
+    m_householdsModel->setHeaderData(6, Qt::Horizontal, "Phone");       // phone
+    m_householdsModel->setHeaderData(7, Qt::Horizontal, "Address");     // address
+    m_householdsModel->setHeaderData(11, Qt::Horizontal, "Stove Size"); // stove_size
+    m_householdsModel->setHeaderData(12, Qt::Horizontal, "Volunteer");  // is_volunteer
+    m_householdsModel->setHeaderData(23, Qt::Horizontal, "Orders");     // order_count
+    m_householdsModel->setHeaderData(2, Qt::Horizontal, "Type");        // user_type
+    
+    // Hide some detailed columns for the table view
+    m_householdsView->hideColumn(0); // ID
+    m_householdsView->hideColumn(1); // username
+    m_householdsView->hideColumn(3); // role (legacy)
+    m_householdsView->hideColumn(8); // mailing_address
+    m_householdsView->hideColumn(9); // gate_code
+    m_householdsView->hideColumn(10); // notes
+    m_householdsView->hideColumn(13); // waiver_signed
+    m_householdsView->hideColumn(14); // has_license
+    m_householdsView->hideColumn(15); // has_working_vehicle
+    m_householdsView->hideColumn(16); // works_for_wood
+    m_householdsView->hideColumn(17); // wood_credit_received
+    m_householdsView->hideColumn(18); // credit_balance
+    m_householdsView->hideColumn(19); // last_volunteer_date
+    m_householdsView->hideColumn(20); // last_order_date
+    m_householdsView->hideColumn(21); // availability
+    m_householdsView->hideColumn(22); // active
+    m_householdsView->hideColumn(24); // created_at
+    m_householdsView->hideColumn(25); // last_login
 
     // Create clients tab with search functionality
     auto *clientsTab = new QWidget();
@@ -194,7 +222,7 @@ void MainWindow::setupDatabaseModels()
     m_tabs->addTab(clientsTab, "👥 Clients");
   }
 
-  if (Authorization::hasPermission(m_role, Authorization::Permission::ViewInventory)) {
+  if (Authorization::hasPermission(m_userType, Authorization::Permission::ViewInventory)) {
     auto* inventoryRelModel = new QSqlRelationalTableModel(this, db);
     inventoryRelModel->setTable("inventory_items");
     inventoryRelModel->setEditStrategy(QSqlTableModel::OnManualSubmit);
@@ -219,9 +247,19 @@ void MainWindow::setupDatabaseModels()
 
     m_inventoryModel = inventoryRelModel;
 
+    // Set user-friendly column headers
+    inventoryRelModel->setHeaderData(0, Qt::Horizontal, "ID");
     inventoryRelModel->setHeaderData(1, Qt::Horizontal, "Category");
     inventoryRelModel->setHeaderData(2, Qt::Horizontal, "Item Name");
     inventoryRelModel->setHeaderData(3, Qt::Horizontal, "Quantity");
+    inventoryRelModel->setHeaderData(4, Qt::Horizontal, "Unit");
+    inventoryRelModel->setHeaderData(5, Qt::Horizontal, "Location");
+    inventoryRelModel->setHeaderData(6, Qt::Horizontal, "Notes");
+    
+    // Hide some columns
+    m_inventoryView->hideColumn(0); // ID
+    m_inventoryView->hideColumn(7); // last_updated
+    m_inventoryView->hideColumn(8); // created_at
 
     // Create inventory tab with search functionality
     auto *inventoryTab = new QWidget();
@@ -248,10 +286,11 @@ void MainWindow::setupDatabaseModels()
     m_tabs->addTab(inventoryTab, "📦 Inventory");
   }
 
-  if (Authorization::hasPermission(m_role, Authorization::Permission::AddOrders)) {
+  if (Authorization::hasPermission(m_userType, Authorization::Permission::AddOrders)) {
     m_ordersModel = new QSqlTableModel(this, db);
     m_ordersModel->setTable("orders");
     m_ordersModel->setEditStrategy(QSqlTableModel::OnManualSubmit);
+    // Note: orders still reference household_id for now, will be updated in next migration
 
     if (!m_ordersModel->select()) {
       qDebug() << "ERROR: Failed to select orders table:" << m_ordersModel->lastError().text();
@@ -270,9 +309,31 @@ void MainWindow::setupDatabaseModels()
     m_ordersView->setSortingEnabled(true);
     connect(m_ordersView, &QTableView::doubleClicked, this, &MainWindow::onWorkOrderDoubleClicked);
 
+    // Set user-friendly column headers
+    m_ordersModel->setHeaderData(0, Qt::Horizontal, "ID");
+    m_ordersModel->setHeaderData(1, Qt::Horizontal, "Client ID");
     m_ordersModel->setHeaderData(2, Qt::Horizontal, "Order Date");
+    m_ordersModel->setHeaderData(3, Qt::Horizontal, "Requested");
+    m_ordersModel->setHeaderData(4, Qt::Horizontal, "Delivered");
     m_ordersModel->setHeaderData(5, Qt::Horizontal, "Status");
     m_ordersModel->setHeaderData(6, Qt::Horizontal, "Priority");
+    m_ordersModel->setHeaderData(7, Qt::Horizontal, "Delivery Date");
+    m_ordersModel->setHeaderData(10, Qt::Horizontal, "Driver");
+    m_ordersModel->setHeaderData(11, Qt::Horizontal, "Payment");
+    m_ordersModel->setHeaderData(12, Qt::Horizontal, "Amount");
+    
+    // Hide some detailed columns
+    m_ordersView->hideColumn(0); // ID
+    m_ordersView->hideColumn(8); // delivery_address
+    m_ordersView->hideColumn(9); // delivery_notes
+    m_ordersView->hideColumn(13); // notes
+    m_ordersView->hideColumn(14); // created_by
+    m_ordersView->hideColumn(15); // created_at
+    m_ordersView->hideColumn(16); // updated_at
+    m_ordersView->hideColumn(17); // delivery_time
+    m_ordersView->hideColumn(18); // start_mileage
+    m_ordersView->hideColumn(19); // end_mileage
+    m_ordersView->hideColumn(20); // completed_date
 
     // Create orders tab with search functionality
     auto *ordersTab = new QWidget();
@@ -300,10 +361,10 @@ void MainWindow::setupDatabaseModels()
   }
   
   // Add Bookkeeping tab for Admin and Lead roles
-  if (Authorization::isAdmin(m_role) || Authorization::isLead(m_role)) {
+  if (Authorization::isAdmin(m_userType) || Authorization::isLead(m_userType)) {
     auto* bookkeepingWidget = new BookkeepingWidget(m_username, this);
     m_tabs->addTab(bookkeepingWidget, "💰 Bookkeeping");
-    qDebug() << "Added Bookkeeping tab for role:" << m_role;
+    qDebug() << "Added Bookkeeping tab for user type:" << m_userType;
   }
 }
 
@@ -349,7 +410,7 @@ void MainWindow::updateStatusBar()
 {
     if (!m_statusBar) return;
     
-    QString statusText = QString("📊 System Status - User: %1 (%2)").arg(m_fullName).arg(m_role);
+    QString statusText = QString("📊 System Status - User: %1 (%2)").arg(m_fullName).arg(m_userType);
     
     // Add record counts if models are available
     QStringList counts;
@@ -458,4 +519,517 @@ void MainWindow::setupKeyboardShortcuts()
     });
     
     qDebug() << "Keyboard shortcuts setup complete";
+}
+
+// Missing method implementations
+void MainWindow::setupMenuBar()
+{
+    qDebug() << "Setting up menu bar...";
+    
+    auto *menuBar = this->menuBar();
+    
+    // File menu
+    auto *fileMenu = menuBar->addMenu("&File");
+    
+    auto *refreshAction = fileMenu->addAction("&Refresh Data");
+    refreshAction->setShortcut(QKeySequence::Refresh);
+    connect(refreshAction, &QAction::triggered, [this]() {
+        if (m_householdsModel) m_householdsModel->select();
+        if (m_inventoryModel) m_inventoryModel->select();
+        if (m_ordersModel) m_ordersModel->select();
+    });
+    
+    fileMenu->addSeparator();
+    
+    auto *logoutAction = fileMenu->addAction("&Logout");
+    logoutAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_L));
+    connect(logoutAction, &QAction::triggered, this, &MainWindow::logout);
+    
+    fileMenu->addSeparator();
+    
+    auto *exitAction = fileMenu->addAction("E&xit");
+    exitAction->setShortcut(QKeySequence::Quit);
+    connect(exitAction, &QAction::triggered, this, &QWidget::close);
+    
+    // Admin menu (only for admin users)
+    if (Authorization::hasPermission(m_userType, Authorization::Permission::ManageUsers)) {
+        auto *adminMenu = menuBar->addMenu("&Admin");
+        
+        auto *loadSampleDataAction = adminMenu->addAction("&Load Sample Data");
+        connect(loadSampleDataAction, &QAction::triggered, this, &MainWindow::loadSampleData);
+        
+        adminMenu->addSeparator();
+        
+        auto *exportClientsAction = adminMenu->addAction("Export &Clients to CSV");
+        connect(exportClientsAction, &QAction::triggered, this, &MainWindow::exportClientsToCSV);
+        
+        auto *exportOrdersAction = adminMenu->addAction("Export &Orders to CSV");
+        connect(exportOrdersAction, &QAction::triggered, this, &MainWindow::exportOrdersToCSV);
+        
+        auto *exportInventoryAction = adminMenu->addAction("Export &Inventory to CSV");
+        connect(exportInventoryAction, &QAction::triggered, this, &MainWindow::exportInventoryToCSV);
+        
+        adminMenu->addSeparator();
+        
+        auto *clearDataAction = adminMenu->addAction("&Clear All Data");
+        connect(clearDataAction, &QAction::triggered, this, &MainWindow::clearAllData);
+    }
+    
+    // Help menu
+    auto *helpMenu = menuBar->addMenu("&Help");
+    
+    auto *aboutAction = helpMenu->addAction("&About");
+    connect(aboutAction, &QAction::triggered, [this]() {
+        QMessageBox::about(this, "About Firewood Bank",
+            "<h2>Firewood Bank Management System</h2>"
+            "<p>Version 1.0</p>"
+            "<p>A comprehensive system for managing firewood distribution, "
+            "volunteer coordination, and client services.</p>"
+            "<p>Built with Qt6 and C++17</p>");
+    });
+}
+
+void MainWindow::setupToolbar()
+{
+    qDebug() << "Setting up toolbar...";
+    
+    auto *tb = addToolBar("Main");
+    tb->setMovable(false);
+    tb->setIconSize(QSize(24, 24));
+    
+    // Everyone can view their own profile
+    auto *myProfileAction = new QAction("👤 My Profile", this);
+    myProfileAction->setToolTip("View and edit my profile");
+    connect(myProfileAction, &QAction::triggered, this, &MainWindow::viewMyProfile);
+    tb->addAction(myProfileAction);
+    
+    // Employees and Admins can view employee directory
+    if (Authorization::hasPermission(m_userType, Authorization::Permission::ViewClients)) {
+        auto *employeeDirectoryAction = new QAction("👥 Employee Directory", this);
+        employeeDirectoryAction->setToolTip("CRM employee contact information");
+        connect(employeeDirectoryAction, &QAction::triggered, this, &MainWindow::viewEmployeeDirectory);
+        tb->addAction(employeeDirectoryAction);
+    }
+    
+    tb->addSeparator();
+    
+    // Admin-only actions
+    if (Authorization::hasPermission(m_userType, Authorization::Permission::ManageUsers)) {
+        auto *changeRequestsAction = new QAction("📋 Change Requests", this);
+        changeRequestsAction->setToolTip("Review profile change requests");
+        connect(changeRequestsAction, &QAction::triggered, this, &MainWindow::viewProfileChangeRequests);
+        tb->addAction(changeRequestsAction);
+        tb->addSeparator();
+        auto *manageUsersAction = new QAction("👨‍💼 Manage Users", this);
+        manageUsersAction->setToolTip("Manage system users");
+        connect(manageUsersAction, &QAction::triggered, this, &MainWindow::manageUsers);
+        tb->addAction(manageUsersAction);
+        
+        auto *manageAgenciesAction = new QAction("🏢 Manage Agencies", this);
+        manageAgenciesAction->setToolTip("Manage partner agencies");
+        connect(manageAgenciesAction, &QAction::triggered, this, &MainWindow::manageAgencies);
+        tb->addAction(manageAgenciesAction);
+        
+        tb->addSeparator();
+    }
+    
+    // Admin and Employee actions
+    if (Authorization::hasPermission(m_userType, Authorization::Permission::EditClients)) {
+        auto *addClient = new QAction("👥 Add Client", this);
+        addClient->setToolTip("Add a new client/household");
+        connect(addClient, &QAction::triggered, this, &MainWindow::addClient);
+        tb->addAction(addClient);
+        
+        auto *editClient = new QAction("✏️ Edit Client", this);
+        editClient->setToolTip("Edit selected client");
+        connect(editClient, &QAction::triggered, this, &MainWindow::editClient);
+        tb->addAction(editClient);
+        
+        tb->addSeparator();
+    }
+    
+    // Add/Edit Orders (Admin and Employees)
+    if (Authorization::hasPermission(m_userType, Authorization::Permission::AddOrders)) {
+        auto *addOrder = new QAction("📋 New Order", this);
+        addOrder->setToolTip("Create a new work order");
+        connect(addOrder, &QAction::triggered, this, &MainWindow::addWorkOrder);
+        tb->addAction(addOrder);
+        
+        auto *editOrder = new QAction("📝 Edit Order", this);
+        editOrder->setToolTip("Edit selected work order");
+        connect(editOrder, &QAction::triggered, this, &MainWindow::editWorkOrder);
+        tb->addAction(editOrder);
+        
+        tb->addSeparator();
+    }
+    
+    // Inventory Management (Admin and Employees)
+    if (Authorization::hasPermission(m_userType, Authorization::Permission::EditInventory)) {
+        auto *addInventory = new QAction("📦 Add Inventory", this);
+        addInventory->setToolTip("Add or update inventory item");
+        connect(addInventory, &QAction::triggered, this, &MainWindow::addInventoryItem);
+        tb->addAction(addInventory);
+        
+        auto *editInventory = new QAction("✏️ Edit Inventory", this);
+        editInventory->setToolTip("Edit selected inventory item");
+        connect(editInventory, &QAction::triggered, this, &MainWindow::editInventoryItem);
+        tb->addAction(editInventory);
+        
+        auto *manageEquip = new QAction("🔧 Equipment", this);
+        manageEquip->setToolTip("Manage equipment maintenance");
+        connect(manageEquip, &QAction::triggered, this, &MainWindow::manageEquipment);
+        tb->addAction(manageEquip);
+        
+        tb->addSeparator();
+    }
+    
+    // Everyone gets refresh
+    auto *refreshAction = new QAction("🔄 Refresh", this);
+    refreshAction->setToolTip("Refresh data");
+    connect(refreshAction, &QAction::triggered, [this]() {
+        if (m_householdsModel) m_householdsModel->select();
+        if (m_inventoryModel) m_inventoryModel->select();
+        if (m_ordersModel) m_ordersModel->select();
+    });
+    tb->addAction(refreshAction);
+    
+    tb->addSeparator();
+    
+    // Everyone gets logout
+    auto *logoutAction = new QAction("🚪 Logout", this);
+    logoutAction->setToolTip("Logout and return to login screen");
+    connect(logoutAction, &QAction::triggered, this, &MainWindow::logout);
+    tb->addAction(logoutAction);
+}
+
+void MainWindow::addClient()
+{
+    qDebug() << "Opening add client dialog...";
+    
+    ClientDialog dialog(-1, this);
+    if (dialog.exec() == QDialog::Accepted) {
+        qDebug() << "Client added successfully";
+        if (m_householdsModel) {
+            m_householdsModel->select(); // Refresh the view
+        }
+    }
+}
+
+void MainWindow::editClient()
+{
+    if (!m_householdsView->selectionModel()->hasSelection()) {
+        QMessageBox::information(this, "No Selection", "Please select a client to edit.");
+        return;
+    }
+    
+    QModelIndex index = m_householdsView->selectionModel()->currentIndex();
+    onClientDoubleClicked(index);
+}
+
+void MainWindow::onClientDoubleClicked(const QModelIndex &index)
+{
+    if (!index.isValid()) return;
+    
+    int row = index.row();
+    QModelIndex idIndex = m_householdsModel->index(row, 0);
+    int clientId = m_householdsModel->data(idIndex).toInt();
+    
+    qDebug() << "Opening edit dialog for client ID:" << clientId;
+    
+    ClientDialog dialog(clientId, this);
+    if (dialog.exec() == QDialog::Accepted) {
+        qDebug() << "Client updated successfully";
+        if (m_householdsModel) {
+            m_householdsModel->select(); // Refresh the view
+        }
+    }
+}
+
+void MainWindow::addWorkOrder()
+{
+    qDebug() << "Opening add work order dialog...";
+    
+    WorkOrderDialog dialog(-1, this);
+    if (dialog.exec() == QDialog::Accepted) {
+        qDebug() << "Work order created successfully";
+        if (m_ordersModel) {
+            m_ordersModel->select(); // Refresh the view
+        }
+        if (m_householdsModel) {
+            m_householdsModel->select(); // Refresh in case order count updated
+        }
+    }
+}
+
+void MainWindow::editWorkOrder()
+{
+    if (!m_ordersView || !m_ordersView->selectionModel()->hasSelection()) {
+        QMessageBox::information(this, "No Selection", "Please select a work order to edit.");
+        return;
+    }
+    
+    QModelIndex index = m_ordersView->selectionModel()->currentIndex();
+    onWorkOrderDoubleClicked(index);
+}
+
+void MainWindow::onWorkOrderDoubleClicked(const QModelIndex &index)
+{
+    if (!index.isValid()) return;
+    
+    int row = index.row();
+    QModelIndex idIndex = m_ordersModel->index(row, 0);
+    int orderId = m_ordersModel->data(idIndex).toInt();
+    
+    qDebug() << "Opening edit dialog for work order ID:" << orderId;
+    
+    WorkOrderDialog dialog(orderId, this);
+    if (dialog.exec() == QDialog::Accepted) {
+        qDebug() << "Work order updated successfully";
+        if (m_ordersModel) {
+            m_ordersModel->select(); // Refresh the view
+        }
+        if (m_householdsModel) {
+            m_householdsModel->select(); // Refresh in case order count updated
+        }
+    }
+}
+
+void MainWindow::addInventoryItem()
+{
+    qDebug() << "Opening add inventory item dialog...";
+    
+    InventoryDialog dialog(-1, this);
+    if (dialog.exec() == QDialog::Accepted) {
+        qDebug() << "Inventory item added successfully";
+        if (m_inventoryModel) {
+            m_inventoryModel->select(); // Refresh the view
+        }
+    }
+}
+
+void MainWindow::editInventoryItem()
+{
+    if (!m_inventoryView->selectionModel()->hasSelection()) {
+        QMessageBox::information(this, "No Selection", "Please select an inventory item to edit.");
+        return;
+    }
+    
+    QModelIndex index = m_inventoryView->selectionModel()->currentIndex();
+    onInventoryDoubleClicked(index);
+}
+
+void MainWindow::onInventoryDoubleClicked(const QModelIndex &index)
+{
+    if (!index.isValid()) return;
+    
+    int row = index.row();
+    QModelIndex idIndex = m_inventoryModel->index(row, 0);
+    int itemId = m_inventoryModel->data(idIndex).toInt();
+    
+    qDebug() << "Opening edit dialog for inventory item ID:" << itemId;
+    
+    InventoryDialog dialog(itemId, this);
+    if (dialog.exec() == QDialog::Accepted) {
+        qDebug() << "Inventory item updated successfully";
+        if (m_inventoryModel) {
+            m_inventoryModel->select(); // Refresh the view
+        }
+    }
+}
+
+void MainWindow::deleteSelectedClient()
+{
+    if (!m_householdsView->selectionModel()->hasSelection()) {
+        QMessageBox::information(this, "No Selection", "Please select a client to delete.");
+        return;
+    }
+    
+    QModelIndex index = m_householdsView->selectionModel()->currentIndex();
+    int row = index.row();
+    QString clientName = m_householdsModel->data(m_householdsModel->index(row, 4)).toString(); // full_name column
+    
+    QMessageBox::StandardButton reply = QMessageBox::question(this, "Confirm Delete",
+        QString("Are you sure you want to delete client '%1'?\n\nThis action cannot be undone.").arg(clientName),
+        QMessageBox::Yes | QMessageBox::No);
+    
+    if (reply == QMessageBox::Yes) {
+        m_householdsModel->removeRow(row);
+        if (m_householdsModel->submitAll()) {
+            QMessageBox::information(this, "Success", "Client deleted successfully.");
+        } else {
+            QMessageBox::warning(this, "Error", "Failed to delete client: " + m_householdsModel->lastError().text());
+            m_householdsModel->revertAll();
+        }
+    }
+}
+
+void MainWindow::deleteSelectedOrder()
+{
+    if (!m_ordersView || !m_ordersView->selectionModel()->hasSelection()) {
+        QMessageBox::information(this, "No Selection", "Please select an order to delete.");
+        return;
+    }
+    
+    QModelIndex index = m_ordersView->selectionModel()->currentIndex();
+    int row = index.row();
+    int orderId = m_ordersModel->data(m_ordersModel->index(row, 0)).toInt();
+    
+    QMessageBox::StandardButton reply = QMessageBox::question(this, "Confirm Delete",
+        QString("Are you sure you want to delete work order #%1?\n\nThis action cannot be undone.").arg(orderId),
+        QMessageBox::Yes | QMessageBox::No);
+    
+    if (reply == QMessageBox::Yes) {
+        m_ordersModel->removeRow(row);
+        if (m_ordersModel->submitAll()) {
+            QMessageBox::information(this, "Success", "Work order deleted successfully.");
+        } else {
+            QMessageBox::warning(this, "Error", "Failed to delete work order: " + m_ordersModel->lastError().text());
+            m_ordersModel->revertAll();
+        }
+    }
+}
+
+void MainWindow::deleteSelectedInventoryItem()
+{
+    if (!m_inventoryView->selectionModel()->hasSelection()) {
+        QMessageBox::information(this, "No Selection", "Please select an inventory item to delete.");
+        return;
+    }
+    
+    QModelIndex index = m_inventoryView->selectionModel()->currentIndex();
+    int row = index.row();
+    QString itemName = m_inventoryModel->data(m_inventoryModel->index(row, 2)).toString(); // item_name column
+    
+    QMessageBox::StandardButton reply = QMessageBox::question(this, "Confirm Delete",
+        QString("Are you sure you want to delete inventory item '%1'?\n\nThis action cannot be undone.").arg(itemName),
+        QMessageBox::Yes | QMessageBox::No);
+    
+    if (reply == QMessageBox::Yes) {
+        m_inventoryModel->removeRow(row);
+        if (m_inventoryModel->submitAll()) {
+            QMessageBox::information(this, "Success", "Inventory item deleted successfully.");
+        } else {
+            QMessageBox::warning(this, "Error", "Failed to delete inventory item: " + m_inventoryModel->lastError().text());
+            m_inventoryModel->revertAll();
+        }
+    }
+}
+
+void MainWindow::applyRoleBasedPermissions()
+{
+    qDebug() << "Applying role-based permissions for user type:" << m_userType;
+    // Permissions are already applied during UI setup based on Authorization checks
+}
+
+void MainWindow::logDatabaseStatus()
+{
+    QSqlDatabase db = QSqlDatabase::database();
+    qDebug() << "Database Status:";
+    qDebug() << "  - Connected:" << db.isOpen();
+    qDebug() << "  - Database name:" << db.databaseName();
+    qDebug() << "  - Driver name:" << db.driverName();
+    
+    if (!db.isOpen()) {
+        qDebug() << "  - Last error:" << db.lastError().text();
+    }
+}
+
+void MainWindow::logout()
+{
+    qDebug() << "Logout requested";
+    emit logoutRequested();
+}
+
+void MainWindow::viewMyProfile()
+{
+    qDebug() << "Opening my profile dialog...";
+    MyProfileDialog dialog(m_username, m_fullName, this);
+    dialog.exec();
+}
+
+void MainWindow::viewEmployeeDirectory()
+{
+    qDebug() << "Opening employee directory dialog...";
+    EmployeeDirectoryDialog dialog(this);
+    dialog.exec();
+}
+
+void MainWindow::viewProfileChangeRequests()
+{
+    qDebug() << "Opening profile change requests dialog...";
+    ProfileChangeRequestDialog dialog(m_username, this);
+    dialog.exec();
+}
+
+void MainWindow::viewDeliveryLog()
+{
+    qDebug() << "Opening delivery log dialog...";
+    DeliveryLogDialog dialog(m_username, this);
+    dialog.exec();
+}
+
+void MainWindow::manageEquipment()
+{
+    qDebug() << "Opening equipment maintenance dialog...";
+    EquipmentMaintenanceDialog dialog(-1, this);
+    dialog.exec();
+}
+
+void MainWindow::manageUsers()
+{
+    qDebug() << "Opening user management dialog...";
+    UserManagementDialog dialog(this);
+    dialog.exec();
+}
+
+void MainWindow::manageAgencies()
+{
+    qDebug() << "Opening agencies management dialog...";
+    QMessageBox::information(this, "Coming Soon", "Agencies management feature coming soon!");
+}
+
+void MainWindow::loadSampleData()
+{
+    qDebug() << "Loading sample data...";
+    bool success = firewood::db::loadSampleData();
+    if (success) {
+        QMessageBox::information(this, "Success", "Sample data loaded successfully!");
+        // Refresh all models
+        if (m_householdsModel) m_householdsModel->select();
+        if (m_inventoryModel) m_inventoryModel->select();
+        if (m_ordersModel) m_ordersModel->select();
+    } else {
+        QMessageBox::warning(this, "Error", "Failed to load sample data. Check console for details.");
+    }
+}
+
+void MainWindow::exportClientsToCSV()
+{
+    qDebug() << "Exporting clients to CSV...";
+    QMessageBox::information(this, "Coming Soon", "CSV export feature coming soon!");
+}
+
+void MainWindow::exportOrdersToCSV()
+{
+    qDebug() << "Exporting orders to CSV...";
+    QMessageBox::information(this, "Coming Soon", "CSV export feature coming soon!");
+}
+
+void MainWindow::exportInventoryToCSV()
+{
+    qDebug() << "Exporting inventory to CSV...";
+    QMessageBox::information(this, "Coming Soon", "CSV export feature coming soon!");
+}
+
+void MainWindow::clearAllData()
+{
+    QMessageBox::StandardButton reply = QMessageBox::question(this, "Confirm Clear All Data",
+        "Are you sure you want to clear ALL data from the database?\n\nThis action cannot be undone and will remove:\n"
+        "- All clients and households\n- All work orders\n- All inventory items\n- All volunteer hours\n- All equipment records\n\n"
+        "This is a DESTRUCTIVE operation!",
+        QMessageBox::Yes | QMessageBox::No);
+    
+    if (reply == QMessageBox::Yes) {
+        QMessageBox::information(this, "Coming Soon", "Clear all data feature coming soon!");
+    }
 }

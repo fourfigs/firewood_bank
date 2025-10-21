@@ -52,9 +52,9 @@ int main(int argc, char *argv[]) {
         }
         
         QString username = loginDialog.getUsername();
-        QString role = loginDialog.getRole();
+        QString userType = loginDialog.getRole(); // Now contains user_type
         
-        qDebug() << "Login successful. User:" << username << "Role:" << role;
+        qDebug() << "Login successful. User:" << username << "Type:" << userType;
         
         // Get full name from login dialog (it's loaded during authentication)
         QString fullName = username; // Default to username if full name not available
@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
         }
         
         // Create and show main window after successful login
-        MainWindow *window = new MainWindow(username, fullName, role);
+        MainWindow *window = new MainWindow(username, fullName, userType);
         if (!window) {
             qDebug() << "CRITICAL: Failed to create main window!";
             QMessageBox::critical(nullptr, "Application Error", 
